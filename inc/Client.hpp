@@ -31,6 +31,8 @@
 			std::string getNickname() const;
 			std::string getUsername() const;
 
+			void closeConnection();
+			void send_msg(const std::string &msg);
 	};
 
 #endif
