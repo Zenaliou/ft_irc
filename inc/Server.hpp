@@ -3,6 +3,7 @@
 
 #include "../inc/Client.hpp"
 #include <iostream>
+#include <sstream>
 #include <vector>
 #include <map>
 #include <string>
@@ -40,7 +41,7 @@ class Server
 		void		removeClient(int fd);
 		static void	setNonBlocking(int fd);
 		void	handleClient(int fd);
-		void	parseMessage(Client *client, const std::string &line);
+		void	processMessage(int fd, const std::string &msg);
 
 		Server(const Server &);
 		Server &operator=(const Server &);

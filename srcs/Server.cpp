@@ -23,7 +23,7 @@ Server::Server(int port, const std::string &password) : _port(port), _password(p
 	_serverFd = socket(AF_INET, SOCK_STREAM, 0);
 	if (_serverFd < 0)
 		throw std::runtime_error("Failed to create socket");
-	
+
 	int opt = 1;
 	setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
 
@@ -36,7 +36,7 @@ Server::Server(int port, const std::string &password) : _port(port), _password(p
 		throw std::runtime_error("Failed to bind socket");
 	if (listen(_serverFd, SOMAXCONN) < 0)
 		throw std::runtime_error("Failed to listen socket");
-			
+
 	setNonBlocking(_serverFd);
 
 	struct pollfd p;
@@ -83,7 +83,7 @@ void Server::run()
 
 			if (fd == _serverFd)
 				acceptClient();
-			
+
 			else
 				handleClient(fd);
 		}
@@ -139,7 +139,7 @@ void Server::handleClient(int fd)
 {
 	char buf[512];
 	int n = recv(fd, buf, sizeof(buf) - 1, 0);
-	
+
 	if (n <= 0 )
 	{
 		removeClient(fd);
@@ -148,7 +148,7 @@ void Server::handleClient(int fd)
 
 	Client *client = _clients[fd];
 	client->_buffer.append(buf, n);
-	
+
 	size_t pos;
 	while ((pos = client->_buffer.find("\r\n")) != std::string::npos)
 	{
@@ -157,4 +157,59 @@ void Server::handleClient(int fd)
 		// if (!line.empty())
 		// 	parseMessage(client, line);
 	}
+}
+
+void parseMessage(std::vector<std::string> &tok, std::string &line)
+{
+	std::string trailing; // Si ":" -> un seul argument
+
+	size_t pos = line.find(" :");
+	if (pos != std::string::npos)
+	{
+		trailing = line.substr(pos + 2);
+		line = line.substr(0, pos);
+	}
+
+	std::istringstream iss(line);
+	std::string word;
+	while (iss >> word)
+		tok.push_back(word);
+	if (!trailing.empty())
+		tok.push_back(trailing);
+}
+
+void execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
+{
+	// if (cmd == "PASS")
+	// 	handlePass(fd, tokens);
+	// else if (cmd == "NICK")
+	// 	handleNick(fd, tokens);
+	// else if (cmd == "NICK")
+	// 	handleNick(fd, tokens);
+	// else if (cmd == "NICK")
+	// 	handleNick(fd, tokens);
+	// else if (cmd == "NICK")
+	// 	handleNick(fd, tokens);
+	// else if (cmd == "NICK")
+	// 	handleNick(fd, tokens);
+	// else
+	// 	send(fd, "421 Unknown command\r\n", 21, 0);
+}
+
+void Server::processMessage(int fd, const std::string &msg)
+{
+	std::cout << "Received from " << fd << ": " << msg;
+
+	std::string line = msg;
+	if (!line.empty() && line[line.size() - 1] == '\n')
+		line.erase(line.size() - 1);
+	if (!line.empty() && line[line.size() - 1] == '\r')
+		line.erase(line.size() - 1);
+
+	std::vector<std::string> tokens;
+	parseMessage(tokens, line);
+	if (tokens.empty())
+		return ;
+	std::string command = tokens[0];
+	execCommand(command, fd, tokens);
 }
