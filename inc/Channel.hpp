@@ -10,8 +10,9 @@
 			std::string _topic;
 			std::set<int> _clients_fd; // liste des membres
 			std::set<int> _operators;
-			bool _inviteOnly;
-			std::string _password;
+			bool _inviteOnly; // MODE i
+			std::string _password; // MODE k
+			int	_user_limit; //MODE l
 		public:
 			Channel();
 			Channel(const std::string &name);
