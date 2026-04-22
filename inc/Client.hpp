@@ -10,7 +10,7 @@
 			int	_fd;
 			std::string	_nickname; // nom public utilise
 			std::string	_username; // user command
-			std::string	_buffer;
+
 			std::set<std::string> _channels;
 			/**
 			 * 	bool _isAuthenticated;
@@ -23,7 +23,7 @@
 			Client();
 			Client(int fd);
 			~Client();
-
+			std::string	_buffer;
 			void setNickname(const std::string &nickname);
 			void setUsername(const std::string &username);
 

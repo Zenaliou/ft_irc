@@ -18,10 +18,10 @@ void Server::setNonBlocking(int fd)
 		throw std::runtime_error("fctl F_SETFL failed");
 }
 
-Server::Server(int port, const std::string &passowrd) : _port(port), _password(password)
+Server::Server(int port, const std::string &password) : _port(port), _password(password)
 {
-	_serverFD = socket(AF_INET, SOCK_STREAM, 0);
-	if (_serverFD < 0)
+	_serverFd = socket(AF_INET, SOCK_STREAM, 0);
+	if (_serverFd < 0)
 		throw std::runtime_error("Failed to create socket");
 	
 	int opt = 1;
@@ -30,7 +30,7 @@ Server::Server(int port, const std::string &passowrd) : _port(port), _password(p
 	sockaddr_in addr;
 	addr.sin_family = AF_INET;
 	addr.sin_port = htons(port);
-	addr.sin_addr.adrr = INADDR_ANY;
+	addr.sin_addr.s_addr = INADDR_ANY;
 
 	if (bind(_serverFd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
 		throw std::runtime_error("Failed to bind socket");
@@ -50,7 +50,7 @@ Server::Server(int port, const std::string &passowrd) : _port(port), _password(p
 
 Server::~Server()
 {
-	for (stD::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 		delete it->second;
 	_clients.clear();
 	close(_serverFd);
@@ -65,7 +65,7 @@ void Server::run()
 
 	while (g_running)
 	{
-		int ret = poll(&pollfds[0], pollfds.size(), -1);
+		int ret = poll(&_pollfds[0], _pollfds.size(), -1);
 		if (ret < 0)
 		{
 			if (!g_running)
@@ -74,12 +74,12 @@ void Server::run()
 			break;
 		}
 
-		for (size_t i = 0; i < pollfds.size(), i++)
+		for (size_t i = 0; i < _pollfds.size(); i++)
 		{
 			if (_pollfds[i].revents == 0)
 				continue;
 
-			int fd = pollfds[i].fd;
+			int fd = _pollfds[i].fd;
 
 			if (fd == _serverFd)
 				acceptClient();
@@ -95,7 +95,7 @@ void Server::acceptClient()
 	int client_fd = accept(_serverFd, NULL, NULL);
 	if (client_fd < 0)
 	{
-		if (errno != EGAIN && errno != EWOULDBLOCK)
+		if (errno != EAGAIN && errno != EWOULDBLOCK)
 			std::cerr << "accept() failed" << std::endl;
 		return;
 	}
@@ -103,7 +103,7 @@ void Server::acceptClient()
 	setNonBlocking(client_fd);
 
 	Client *client = new Client(client_fd);
-	_client[client_fd] = client;
+	_clients[client_fd] = client;
 
 	struct pollfd p;
 	p.fd = client_fd;
@@ -150,11 +150,11 @@ void Server::handleClient(int fd)
 	client->_buffer.append(buf, n);
 	
 	size_t pos;
-	while ((pos = client->buffer_in.find("\r\n")) != std::string::npos)
+	while ((pos = client->_buffer.find("\r\n")) != std::string::npos)
 	{
-		std::string line = client->buffer_in.substr(0, pos);
-		client->buffer_in.erase(0, pos + 2);
-		if (!line.empty())
-			parseMessage(client, line);
+		std::string line = client->_buffer.substr(0, pos);
+		client->_buffer.erase(0, pos + 2);
+		// if (!line.empty())
+		// 	parseMessage(client, line);
 	}
 }

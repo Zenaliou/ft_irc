@@ -12,8 +12,8 @@ int	main(int argc, char **argv)
 
 	try
 	{
-		// Server server(port, password);
-		// server.run();
+		Server server(port, password);
+		server.run();
 	}
 	catch(const std::exception& e)
 	{

@@ -14,6 +14,7 @@
 #include <unistd.h>
 #include <cerrno>
 #include <stdexcept>
+#include <cstdlib>
 
 class Client;
 class Channel;
