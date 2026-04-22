@@ -2,7 +2,7 @@
 
 Client::Client() {}
 Client::Client(int fd) : _fd(fd) {}
-Client::~Client() { closeConnection() }
+Client::~Client() { closeConnection(); }
 
 void Client::setNickname(const std::string &nickname)
 {
@@ -21,15 +21,15 @@ std::string Client::getUsername() const { return (_username); }
 
 void Client::closeConnection()
 {
-	if (fd >= 0)
+	if (_fd >= 0)
 	{
-		close(fd);
-		fd = -1
+		close(_fd);
+		_fd = -1;
 	}
 }
 
 void Client::send_msg(const std::string &msg)
 {
 	std::string out = msg + "\r\n";
-	send(fd, oout.c_str(), out.size(), 0);
+	send(_fd, out.c_str(), out.size(), 0);
 }
