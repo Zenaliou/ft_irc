@@ -1,0 +1,160 @@
+#include "../inc/Server.hpp"
+
+volatile sig_atomic_t g_running = 1;
+
+static void signalHandler(int sig)
+{
+	(void)sig;
+	g_running = 0;
+	std::cout << "\nShutting down..." << std::endl;
+}
+
+void Server::setNonBlocking(int fd)
+{
+	int flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1)
+		throw std::runtime_error("fcntl F_GETFL failed");
+	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		throw std::runtime_error("fctl F_SETFL failed");
+}
+
+Server::Server(int port, const std::string &passowrd) : _port(port), _password(password)
+{
+	_serverFD = socket(AF_INET, SOCK_STREAM, 0);
+	if (_serverFD < 0)
+		throw std::runtime_error("Failed to create socket");
+	
+	int opt = 1;
+	setsockopt(_serverFd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
+
+	sockaddr_in addr;
+	addr.sin_family = AF_INET;
+	addr.sin_port = htons(port);
+	addr.sin_addr.adrr = INADDR_ANY;
+
+	if (bind(_serverFd, (struct sockaddr*)&addr, sizeof(addr)) < 0)
+		throw std::runtime_error("Failed to bind socket");
+	if (listen(_serverFd, SOMAXCONN) < 0)
+		throw std::runtime_error("Failed to listen socket");
+			
+	setNonBlocking(_serverFd);
+
+	struct pollfd p;
+	p.fd      = _serverFd;
+	p.events  = POLLIN;
+	p.revents = 0;
+	_pollfds.push_back(p);
+
+	std::cout << "Server listening on port " << port << std::endl;
+}
+
+Server::~Server()
+{
+	for (stD::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+		delete it->second;
+	_clients.clear();
+	close(_serverFd);
+}
+
+void Server::run()
+{
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+
+	std::cout << "Server starting main event loop..." << std::endl;
+
+	while (g_running)
+	{
+		int ret = poll(&pollfds[0], pollfds.size(), -1);
+		if (ret < 0)
+		{
+			if (!g_running)
+				break;
+			std::cerr << "poll() error" << std::endl;
+			break;
+		}
+
+		for (size_t i = 0; i < pollfds.size(), i++)
+		{
+			if (_pollfds[i].revents == 0)
+				continue;
+
+			int fd = pollfds[i].fd;
+
+			if (fd == _serverFd)
+				acceptClient();
+			
+			else
+				handleClient(fd);
+		}
+	}
+}
+
+void Server::acceptClient()
+{
+	int client_fd = accept(_serverFd, NULL, NULL);
+	if (client_fd < 0)
+	{
+		if (errno != EGAIN && errno != EWOULDBLOCK)
+			std::cerr << "accept() failed" << std::endl;
+		return;
+	}
+
+	setNonBlocking(client_fd);
+
+	Client *client = new Client(client_fd);
+	_client[client_fd] = client;
+
+	struct pollfd p;
+	p.fd = client_fd;
+	p.events = POLLIN;
+	p.revents = 0;
+	_pollfds.push_back(p);
+
+	std::cout << "New client connected: fd " << client_fd << std::endl;
+}
+
+void Server::removeClient(int fd)
+{
+	for (size_t i = 0; i < _pollfds.size(); i++)
+	{
+		if (_pollfds[i].fd == fd)
+		{
+			_pollfds.erase(_pollfds.begin() + i);
+			break;
+		}
+	}
+
+	std::map<int, Client *>::iterator it = _clients.find(fd);
+	if (it != _clients.end())
+	{
+		delete it->second;
+		_clients.erase(it);
+	}
+
+	std::cout << "Client disconnected: fd " << fd << std::endl;
+}
+
+void Server::handleClient(int fd)
+{
+	char buf[512];
+	int n = recv(fd, buf, sizeof(buf) - 1, 0);
+	
+	if (n <= 0 )
+	{
+		removeClient(fd);
+		return;
+	}
+
+	Client *client = _clients[fd];
+	client->_buffer.append(buf, n);
+	
+	size_t pos;
+	while ((pos = client->buffer_in.find("\r\n")) != std::string::npos)
+	{
+		std::string line = client->buffer_in.substr(0, pos);
+		client->buffer_in.erase(0, pos + 2);
+		if (!line.empty())
+			parseMessage(client, line);
+	}
+}
