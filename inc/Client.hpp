@@ -2,14 +2,22 @@
 	#define CLIENT_HPP
 	#include <iostream>
 	#include <string>
+	#include "Channel.hpp"
 
 	class	Client
 	{
 		private:
 			int	_fd;
-			std::string	_nickname;
-			std::string	_username;
+			std::string	_nickname; // nom public utilise
+			std::string	_username; // user command
 			std::string	_buffer;
+			std::set<std::string> _channels;
+			/**
+			 * 	bool _isAuthenticated;
+			 * 	bool _passOk;
+			 * 	bool _nickSet;
+			 * 	bool _userSet;
+			 */
 
 		public:
 			Client();
