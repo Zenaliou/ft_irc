@@ -184,14 +184,14 @@ void execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens
 	// 	handlePass(fd, tokens);
 	// else if (cmd == "NICK")
 	// 	handleNick(fd, tokens);
-	// else if (cmd == "NICK")
-	// 	handleNick(fd, tokens);
-	// else if (cmd == "NICK")
-	// 	handleNick(fd, tokens);
-	// else if (cmd == "NICK")
-	// 	handleNick(fd, tokens);
-	// else if (cmd == "NICK")
-	// 	handleNick(fd, tokens);
+	// else if (cmd == "USER")
+	// 	handleUser(fd, tokens);
+	// else if (cmd == "PRIVMSG")
+	// 	handlePrivmsg(fd, tokens);
+	// else if (cmd == "JOIN")
+	// 	handleJoin(fd, tokens);
+	// else if (cmd == "QUIT")
+	// 	handleQuit(fd, tokens);
 	// else
 	// 	send(fd, "421 Unknown command\r\n", 21, 0);
 }
