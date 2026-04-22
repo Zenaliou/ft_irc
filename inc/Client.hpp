@@ -1,7 +1,19 @@
 #ifndef CLIENT_HPP
-	#define CLIENT_HPP
-	#include <iostream>
-	#include <string>
+#define CLIENT_HPP
+
+#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <csignal>
+#include <poll.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <cerrno>
+#include <stdexcept>
+#include <cstdlib>
 	#include "Channel.hpp"
 
 	class	Client
@@ -31,6 +43,8 @@
 			std::string getNickname() const;
 			std::string getUsername() const;
 
+			void closeConnection();
+			void send_msg(const std::string &msg);
 	};
 
 #endif
