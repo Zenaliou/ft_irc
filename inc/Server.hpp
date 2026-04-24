@@ -3,6 +3,7 @@
 
 #include "../inc/Client.hpp"
 #include "../inc/Channel.hpp"
+#include "../inc/ErrorCode.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>

@@ -13,20 +13,20 @@ void Server::handlePass(int fd, const std::vector<std::string> &args)
 
 	if (client->isRegistered())
 	{
-		sendError(fd, "462", "Already registered");
+		sendError(fd, ERR_ALREADYREGISTERED, "Already registered");
 		return ;
 	}
 
 	if (args.size() < 2)
 	{
-		sendError(fd, "461", "PASS :Not enough parameters");
+		sendError(fd, ERR_NEEDMOREPARAMS, "PASS :Not enough parameters");
 		return ;
 	}
 
 	std::string password = args[1];
 	if (password != _password)
 	{
-		sendError(fd, "464", "Password incorrect");
+		sendError(fd, ERR_PASSWDMISMATCH, "Password incorrect");
 		return ;
 	}
 
@@ -40,7 +40,7 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 
 	if (args.size() < 2)
 	{
-		sendError(fd, "431", "No nickname given");
+		sendError(fd, ERR_NONICKNAMEGIVEN, "No nickname given");
 		return ;
 	}
 
@@ -49,7 +49,7 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 	{
 		if (it->second->getNickname() == newNickname)
 		{
-			sendError(fd, "433", "Nickname is already in use");
+			sendError(fd, ERR_NICKNAMEINUSE, "Nickname is already in use");
 			return ;
 		}
 	}
@@ -75,13 +75,13 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
 
 	if (client->isRegistered())
 	{
-		sendError(fd, "462", "Already registered");
+		sendError(fd, ERR_ALREADYREGISTERED, "Already registered");
 		return ;
 	}
 
 	if (args.size() < 5)
 	{
-		sendError(fd, "461", "USER :Not enough parameters");
+		sendError(fd, ERR_NEEDMOREPARAMS, "USER :Not enough parameters");
 		return ;
 	}
 
@@ -105,7 +105,7 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 
 	if (args.size() < 3)
 	{
-		sendError(fd, "461", "PRIVMSG :Not enough parameters");
+		sendError(fd, ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
 		return ;
 	}
 
@@ -118,7 +118,7 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 	{
 		if (_channels.find(target) == _channels.end())
 		{
-			sendError(fd, "403", target + " :No such channel");
+			sendError(fd, ERR_NOSUCHCHANNEL, target + " :No such channel");
 			return ;
 		}
 
@@ -139,7 +139,7 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 				return ;
 			}
 		}
-		sendError(fd, "401", target + " :No such nick");
+		sendError(fd, ERR_NOSUCHNICK, target + " :No such nick");
 	}
 }
 
@@ -152,14 +152,14 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 
 	if (args.size() < 2)
 	{
-		sendError(fd, "461", "JOIN :Not enough parameters");
+		sendError(fd, ERR_NEEDMOREPARAMS, "JOIN :Not enough parameters");
 		return ;
 	}
 
 	const std::string &channelName = args[1];
 	if (channelName[0] != '#' && channelName[0] != '&')
 	{
-		sendError(fd, "476", channelName + " :Bad Channel Mask");
+		sendError(fd, ERR_BADCHANMASK, channelName + " :Bad Channel Mask");
 	}
 
 	if (_channels.find(channelName) == _channels.end())
