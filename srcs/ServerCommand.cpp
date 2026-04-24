@@ -1,11 +1,9 @@
 #include "../inc/Server.hpp"
 
 /**
- * PASS
- * Verifie que le client connait le mdp
- * - mauvais mdp -> rejet
- * - deja enregistre -> erreur
- * - pas assez d'arg -> erreur
+ * @brief PASS command, used to set a 'connection password'
+ * @note usage: PASS <password>
+ * @return send ERR_NEEDMOREPARAMS, ERR_ALREADYREGISTERED or ERR_PASSWDMISMATCH in case of error
  */
 void Server::handlePass(int fd, const std::vector<std::string> &args)
 {
@@ -34,6 +32,12 @@ void Server::handlePass(int fd, const std::vector<std::string> &args)
 	std::cout << "Client " << fd << " passed authentication" << std::endl;
 }
 
+/**
+ * @brief NICK command, used to give user a nickname or to change it
+ * @note usage: NICK <nickname>
+ * @return send ERR_NONICKNAMEGIVEN, ERR_ERRONEUSNICKNAME or ERR_NICKNAMEINUSE in case of error
+ */
+// TODO ERR_ERRONEUSNICKNAME
 void Server::handleNick(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
@@ -69,6 +73,11 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 	tryRegister(client, fd);
 }
 
+/**
+ * @brief USER command, used to specify username, hostname and realname of a new user.
+ * @note usage: USER <user> <mode> <unused> <realname>
+ * @return send ERR_NEEDMOREPARAMS, ERR_ALREADYREGISTERED in case of error
+ */
 void Server::handleUser(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
