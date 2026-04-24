@@ -6,6 +6,7 @@
 #include <sstream>
 #include <vector>
 #include <map>
+#include <set>
 #include <string>
 #include <csignal>
 #include <poll.h>
@@ -47,9 +48,9 @@ class Server
 		void handlePass(int fd, const std::vector<std::string> &args);
 		void handleNick(int fd, const std::vector<std::string> &args);
 		void handleUser(int fd, const std::vector<std::string> &args);
-		// void handlePrivmsg(int fd, const std::vector<std::string> &args);
-		// void handleJoin(int fd, const std::vector<std::string> &args);
-		// void handleQuit(int fd, const std::vector<std::string> &args);
+		void handlePrivmsg(int fd, const std::vector<std::string> &args);
+		void handleJoin(int fd, const std::vector<std::string> &args);
+		void handleQuit(int fd, const std::vector<std::string> &args);
 
 		/*		ServerMsg.cpp		*/
 		void sendWelcome(int fd);
