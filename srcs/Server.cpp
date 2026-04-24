@@ -125,6 +125,9 @@ void Server::removeClient(int fd)
 		}
 	}
 
+	for (std::map<std::string, Channel>::iterator ch = _channels.begin(); ch != _channels.end(); ++ch)
+		ch->second.removeClient(fd);
+
 	std::map<int, Client *>::iterator it = _clients.find(fd);
 	if (it != _clients.end())
 	{
@@ -154,8 +157,8 @@ void Server::handleClient(int fd)
 	{
 		std::string line = client->_buffer.substr(0, pos);
 		client->_buffer.erase(0, pos + 2);
-		// if (!line.empty())
-		// 	parseMessage(client, line);
+		if (!line.empty())
+			processMessage(fd, line);
 	}
 }
 
@@ -180,6 +183,9 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 
 void execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
 {
+	(void)cmd;
+	(void)fd;
+	(void)tokens;
 	// if (cmd == "PASS")
 	// 	handlePass(fd, tokens);
 	// else if (cmd == "NICK")

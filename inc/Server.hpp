@@ -2,6 +2,7 @@
 #define SERVER_HPP
 
 #include "../inc/Client.hpp"
+#include "../inc/Channel.hpp"
 #include <iostream>
 #include <sstream>
 #include <vector>
