@@ -35,7 +35,7 @@ class Server
 		std::map<int, Client*>				_clients;
 		int									_port;
 		std::string							_password;
-		std::map<std::string, Channel*>		_channels;
+		std::map<std::string, Channel>		_channels;
 
 		void		acceptClient();
 		void		removeClient(int fd);
