@@ -1,17 +1,43 @@
 #include "../inc/Channel.hpp"
 
-Channel::Channel() {}
-Channel::Channel(const std::string &name) : _name(name) {}
+Channel::Channel() : _inviteOnly(false), _user_limit(0) {}
+
+Channel::Channel(const std::string &name)
+	: _name(name), _inviteOnly(false), _user_limit(0) {}
+
 Channel::~Channel() {}
 
-const std::set<int> &Channel::getClientsFd() const { return (_clients_fd); }
+const std::string &Channel::getName() const { return _name; }
 
-void Channel::addClient(int fd)
-{
-	_clients_fd.insert(fd);
-}
+const std::set<int> &Channel::getClientsFd() const { return _clients_fd; }
 
-void Channel::removeClient(int fd)
+void Channel::addClient(int fd)   { _clients_fd.insert(fd); }
+void Channel::removeClient(int fd) { _clients_fd.erase(fd); }
+bool Channel::hasMember(int fd) const { return _clients_fd.count(fd) > 0; }
+int  Channel::getMemberCount() const  { return static_cast<int>(_clients_fd.size()); }
+
+bool Channel::isOperator(int fd) const    { return _operators.count(fd) > 0; }
+void Channel::addOperator(int fd)         { _operators.insert(fd); }
+void Channel::removeOperator(int fd)      { _operators.erase(fd); }
+
+const std::string &Channel::getTopic() const         { return _topic; }
+void Channel::setTopic(const std::string &topic)     { _topic = topic; }
+
+bool Channel::isInviteOnly() const         { return _inviteOnly; }
+void Channel::setInviteOnly(bool val)      { _inviteOnly = val; }
+void Channel::addInvite(int fd)            { _inviteList.insert(fd); }
+bool Channel::isInvited(int fd) const      { return _inviteList.count(fd) > 0; }
+
+const std::string &Channel::getPassword() const       { return _password; }
+void Channel::setPassword(const std::string &pwd)     { _password = pwd; }
+bool Channel::hasPassword() const                     { return !_password.empty(); }
+
+int  Channel::getUserLimit() const    { return _user_limit; }
+void Channel::setUserLimit(int limit) { _user_limit = limit; }
+bool Channel::hasUserLimit() const    { return _user_limit > 0; }
+bool Channel::isFull() const
 {
-	_clients_fd.erase(fd);
+	if (!hasUserLimit())
+		return false;
+	return getMemberCount() >= _user_limit;
 }

@@ -1,7 +1,9 @@
 #ifndef CHANNEL_HPP
-	#define CHANNEL_HPP
-	#include <iostream>
-	#include <set>
+#define CHANNEL_HPP
+
+#include <iostream>
+#include <set>
+#include <string>
 
 	class	Channel
 	{
@@ -9,6 +11,7 @@
 			std::string _name; // nom du channel
 			std::string _topic;
 			std::set<int> _clients_fd; // liste des membres
+			std::set<int> _inviteList;
 			std::set<int> _operators;
 			bool _inviteOnly; // MODE i
 			std::string _password; // MODE k
@@ -18,10 +21,34 @@
 			Channel(const std::string &name);
 			~Channel();
 
-			const std::set<int> &getClientsFd() const;
+		const std::string &getName() const;
 
-			void addClient(int fd);
-			void removeClient(int fd);
-	};
+		const std::set<int> &getClientsFd() const;
+		void addClient(int fd);
+		void removeClient(int fd);
+		bool hasMember(int fd) const;
+		int  getMemberCount() const;
+
+		bool isOperator(int fd) const;
+		void addOperator(int fd);
+		void removeOperator(int fd);
+
+		const std::string &getTopic() const;
+		void setTopic(const std::string &topic);
+
+		bool isInviteOnly() const;
+		void setInviteOnly(bool val);
+		void addInvite(int fd);
+		bool isInvited(int fd) const;
+
+		const std::string &getPassword() const;
+		void setPassword(const std::string &pwd);
+		bool hasPassword() const;
+
+		int  getUserLimit() const;
+		void setUserLimit(int limit);
+		bool hasUserLimit() const;
+		bool isFull() const;
+};
 
 #endif
