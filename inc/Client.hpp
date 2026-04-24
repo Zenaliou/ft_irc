@@ -46,9 +46,9 @@
 			void setUserSet(const bool boolean);
 
 			int getFd() const;
-			std::string getNickname() const;
-			std::string getUsername() const;
-			std::string getRealname() const;
+			const std::string getNickname() const;
+			const std::string getUsername() const;
+			const std::string getRealname() const;
 			bool isPassOk() const;
 			bool isRegistered() const;
 			bool isNickSet() const;

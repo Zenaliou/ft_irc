@@ -14,9 +14,9 @@ void Client::setUserSet(const bool boolean) { _userSet = boolean; }
 
 int Client::getFd() const { return (_fd); }
 
-std::string Client::getNickname() const { return (_nickname); }
-std::string Client::getUsername() const { return (_username); }
-std::string Client::getRealname() const { return (_realname); }
+const std::string Client::getNickname() const { return (_nickname); }
+const std::string Client::getUsername() const { return (_username); }
+const std::string Client::getRealname() const { return (_realname); }
 bool Client::isPassOk() const { return (_passOk); }
 bool Client::isRegistered() const { return (_registered); }
 bool Client::isNickSet() const { return (_nickSet); }
