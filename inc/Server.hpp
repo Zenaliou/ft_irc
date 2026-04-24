@@ -43,8 +43,18 @@ class Server
 		void	handleClient(int fd);
 		void	processMessage(int fd, const std::string &msg);
 
-		Server(const Server &);
-		Server &operator=(const Server &);
+		/*		ServerCommand.cpp		*/
+		void handlePass(int fd, const std::vector<std::string> &args);
+		void handleNick(int fd, const std::vector<std::string> &args);
+		void handleUser(int fd, const std::vector<std::string> &args);
+		// void handlePrivmsg(int fd, const std::vector<std::string> &args);
+		// void handleJoin(int fd, const std::vector<std::string> &args);
+		// void handleQuit(int fd, const std::vector<std::string> &args);
+
+		/*		ServerMsg.cpp		*/
+		void sendWelcome(int fd);
+		void sendError(int fd, const std::string &code, const std::string &msg);
+		void tryRegister(Client *client, int fd);
 };
 
 #endif
