@@ -204,7 +204,7 @@ void execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens
 
 void Server::processMessage(int fd, const std::string &msg)
 {
-	std::cout << "Received from " << fd << ": " << msg;
+	std::cout << "Received from " << fd << ": " << msg << std::endl << std::flush;
 
 	std::string line = msg;
 	if (!line.empty() && line[line.size() - 1] == '\n')
