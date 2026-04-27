@@ -54,6 +54,9 @@ class Server
 		void handleJoin(int fd, const std::vector<std::string> &args);
 		void handleQuit(int fd, const std::vector<std::string> &args);
 
+		void handlePart(int fd, const std::vector<std::string> &args);
+		void handleTopic(int fd, const std::vector<std::string> &args);
+
 		/*		ServerMsg.cpp		*/
 		void sendWelcome(int fd);
 		void sendError(int fd, const std::string &code, const std::string &msg);
