@@ -105,13 +105,20 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
 	tryRegister(client, fd);
 }
 
+/**
+ * @brief PRIVMSG command, used to send messages to user/channel.
+ * @note usage: PRIVMSG <msgtarget> <text to be sent>
+ * @note <msgtarget> is usually the nickname or channel name
+ * @return send ERR_NEEDMOREPARAMS, ERR_NORECIPIENT, ERR_NOTEXTTOSEND, ERR_CANNOTSENDTOCHAN, 
+ * 		ERR_TOOMANYTARGETS, ERR_NOSUCHNICK in case of error, else RPL_AWAY
+ */
 void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
 
 	if (!client->isRegistered())
 		return ;
-
+	//TODO ERR_NEEDMOREPARAMS -> ERR_NORECIPIENT (si PRIVMSG :blabla bla)/ ERR_NOTEXTTOSEND (si pas ':')
 	if (args.size() < 3)
 	{
 		sendError(fd, ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
@@ -152,6 +159,24 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 	}
 }
 
+/**
+ * @brief JOIN command, used to start listening to specific channel.
+ * @note usage: JOIN <channel> <key> OR JOIN 0
+ * @note <channel> and <key> can be a list of args (multiple targets and keys)
+ * @note 0 is used to PART from all channel
+ * @return send ERR_NEEDMOREPARAMS, ERR_BANNEDFROMCHAN, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY, 
+ * 		ERR_CHANNELISFULL, ERR_BADCHANMASK, ERR_NOSUCHCHANNEL, ERR_TOOMANYCHANNELS, 
+ * 		ERR_TOOMANYTARGETS or ERR_UNAVAILRESOURCE in case of error, else RPL_TOPIC + RPL_NAMREPLY
+ */
+// TODO : ERR_BANNEDFROMCHAN
+// TODO : ERR_INVITEONLYCHAN
+// TODO : ERR_BADCHANNELKEY
+// TODO : ERR_CHANNELISFULL
+// TODO : ERR_NOSUCHCHANNEL
+// TODO : ERR_TOOMANYCHANNELS
+// TODO : ERR_TOOMANYTARGETS
+// TODO : ERR_UNAVAILRESOURCE
+// TODO : RPL_TOPIC
 void Server::handleJoin(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
@@ -182,6 +207,10 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 		send(*it, joinMsg.c_str(), joinMsg.size(), 0);
 }
 
+/**
+ * @brief QUIT command, used to terminate a client session with a message
+ * @note usage: QUIT <Quit message>
+ */
 void Server::handleQuit(int fd, const std::vector<std::string> &args)
 {
 	std::map<int, Client*>::iterator it = _clients.find(fd);
