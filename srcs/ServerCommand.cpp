@@ -148,7 +148,7 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
  * @brief PRIVMSG command, used to send messages to user/channel.
  * @note usage: PRIVMSG <msgtarget> <text to be sent>
  * @note <msgtarget> is usually the nickname or channel name
- * @return send ERR_NEEDMOREPARAMS, ERR_NORECIPIENT, ERR_NOTEXTTOSEND, ERR_CANNOTSENDTOCHAN,
+ * @return send ERR_NORECIPIENT, ERR_NOTEXTTOSEND, ERR_CANNOTSENDTOCHAN,
  * 		ERR_TOOMANYTARGETS, ERR_NOSUCHNICK in case of error, else RPL_AWAY
  */
 void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
@@ -157,11 +157,24 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 
 	if (!client->isRegistered())
 		return ;
-	//TODO ERR_NEEDMOREPARAMS -> ERR_NORECIPIENT (si PRIVMSG :blabla bla)/ ERR_NOTEXTTOSEND (si pas ':')
-	if (args.size() < 3)
+	if (args.size() < 2)
 	{
-		sendError(fd, ERR_NEEDMOREPARAMS, "PRIVMSG :Not enough parameters");
+		sendError(fd, ERR_NORECIPIENT, ":No recipient given (PRIVMSG)");
 		return ;
+	}
+	else if (args.size() < 3)
+	{
+		const std::string &param = args[1];
+		if (param[0] == ':')
+		{
+			sendError(fd, ERR_NORECIPIENT, ":No recipient given (PRIVMSG)");
+			return ;
+		}
+		else
+		{
+			sendError(fd, ERR_NOTEXTTOSEND, ":No text to send");
+			return ;
+		}
 	}
 
 	const std::string &target = args[1];
