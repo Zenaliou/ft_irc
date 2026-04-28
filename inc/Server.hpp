@@ -19,6 +19,7 @@
 #include <cerrno>
 #include <stdexcept>
 #include <cstdlib>
+#include <cctype>
 
 class Client;
 class Channel;

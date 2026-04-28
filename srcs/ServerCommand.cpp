@@ -32,12 +32,44 @@ void Server::handlePass(int fd, const std::vector<std::string> &args)
 	std::cout << "Client " << fd << " passed authentication" << std::endl;
 }
 
+static bool isSpecial(char c)
+{
+	return (c == '[' || c == ']' || c == '\\' || c == '`' || c == '_' ||
+			c == '^' || c == '{' || c == '}' || c == '|');
+}
+
+static bool isLetter(char c)
+{
+	return (std::isalpha(static_cast<unsigned char>(c)));
+}
+
+static bool isDigit(char c)
+{
+	return (std::isdigit(static_cast<unsigned char>(c)));
+}
+
+static bool isValidNickname(const std::string &nick)
+{
+	if (nick.empty() || nick.size() > 9)
+		return (false);
+
+	if (!(isLetter(nick[0])) && !isSpecial(nick[0]))
+		return (false);
+
+	for (size_t i = 1; i < nick.length(); ++i)
+	{
+		char c = nick[i];
+		if (!(isLetter(c) || isDigit(c) || isSpecial(c) || c == '-'))
+			return (false);
+	}
+	return (true);
+}
+
 /**
  * @brief NICK command, used to give user a nickname or to change it
  * @note usage: NICK <nickname>
  * @return send ERR_NONICKNAMEGIVEN, ERR_ERRONEUSNICKNAME or ERR_NICKNAMEINUSE in case of error
  */
-// ? ERR_ERRONEUSNICKNAME -> Returned after receiving a NICK message which contains characters which do not fall in the defined set
 void Server::handleNick(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
@@ -49,6 +81,12 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 	}
 
 	std::string newNickname = args[1];
+	if (!isValidNickname(newNickname))
+	{
+		sendError(fd, ERR_ERRONEUSNICKNAME, newNickname + " :Erroneous nickname");
+		return ;
+	}
+
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
 		if (it->second->getNickname() == newNickname)
@@ -80,6 +118,7 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
  */
 void Server::handleUser(int fd, const std::vector<std::string> &args)
 {
+	// TODO args[2] pour set le mode
 	Client	*client = _clients[fd];
 
 	if (client->isRegistered())
