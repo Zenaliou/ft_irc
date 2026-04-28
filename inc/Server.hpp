@@ -56,6 +56,9 @@ class Server
 
 		void handlePart(int fd, const std::vector<std::string> &args);
 		void handleTopic(int fd, const std::vector<std::string> &args);
+		void handleKick(int fd, const std::vector<std::string> &args);
+		void handleInvite(int fd, const std::vector<std::string> &args);
+		void handleMode(int fd, const std::vector<std::string> &args);
 
 		/*		ServerMsg.cpp		*/
 		void sendWelcome(int fd);
