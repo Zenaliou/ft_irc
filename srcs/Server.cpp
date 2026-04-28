@@ -196,12 +196,22 @@ void Server::execCommand(const std::string cmd, int fd, std::vector<std::string>
 		handleNick(fd, tokens);
 	else if (cmd == "USER")
 		handleUser(fd, tokens);
-	else if (cmd == "PRIVMSG")
-		handlePrivmsg(fd, tokens);
 	else if (cmd == "JOIN")
 		handleJoin(fd, tokens);
+	else if (cmd == "PRIVMSG")
+		handlePrivmsg(fd, tokens);
 	else if (cmd == "QUIT")
 		handleQuit(fd, tokens);
+	else if (cmd == "PART")
+		handlePart(fd, tokens);
+	else if (cmd == "KICK")
+		handleKick(fd, tokens);
+	else if (cmd == "INVITE")
+		handleInvite(fd, tokens);
+	else if (cmd == "TOPIC")
+		handleTopic(fd, tokens);
+	// else if (cmd == "MODE")
+	// 	handleMode(fd, tokens);
 	else
 		send(fd, "421 Unknown command\r\n", 21, 0);
 }
