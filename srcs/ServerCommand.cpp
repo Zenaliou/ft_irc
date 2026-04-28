@@ -222,14 +222,14 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
  */
 void Server::handleJoin(int fd, const std::vector<std::string> &args)
 {
-	// TODO : ERR_BANNEDFROMCHAN
-	// TODO : ERR_INVITEONLYCHAN
-	// TODO : ERR_BADCHANNELKEY
-	// TODO : ERR_CHANNELISFULL
-	// TODO : ERR_NOSUCHCHANNEL
-	// TODO : ERR_TOOMANYCHANNELS
-	// TODO : ERR_TOOMANYTARGETS
-	// TODO : ERR_UNAVAILRESOURCE
+	// TODO : ERR_BANNEDFROMCHAN -> check liste bans
+	// TODO : ERR_INVITEONLYCHAN -> check isInviteOnly()
+	// TODO : ERR_BADCHANNELKEY -> check _password
+	// TODO : ERR_CHANNELISFULL -> check _user_limit
+	// TODO : ERR_NOSUCHCHANNEL -> check la syntaxe.... et non l'existence du channel (pcq si channel existe pas -> le creer)
+	// TODO : ERR_TOOMANYCHANNELS -> Pas de limite explicite, depend du server... set a 10 channel ?
+	// TODO : ERR_TOOMANYTARGETS -> Pareil, pas de limite, depend du server... check sur les listes d'args
+	// TODO : ERR_UNAVAILRESOURCE -> Pas vraiment a gerer pour ft_irc
 	// TODO : RPL_TOPIC
 	Client	*client = _clients[fd];
 
