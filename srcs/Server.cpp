@@ -180,6 +180,7 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 	if (!trailing.empty())
 		tok.push_back(trailing);
 }
+
 /**
  * @brief Execute the server/channel command
  * @param cmd (Server) PASS | NICK | USER | JOIN | PRIVMSG | QUIT | PART

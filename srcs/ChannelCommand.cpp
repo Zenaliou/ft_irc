@@ -158,6 +158,70 @@ void Server::handleInvite(int fd, const std::vector<std::string> &args)
 	chan.addClient(targetFd);
 }
 
+/**
+ * @brief TOPIC command, used to change or view the topic of a channel
+ * @note usage : TOPIC <channel> ( <topic> )
+ * @note If <topic> is present, the topic for <channel> will be changed. If <topic> is empty, the topic will be removed
+ * @return If there is no <topic>, the topic for <channel> is returned.
+ * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL or ERR_NOTONCHANNEL in case of error
+ */
+void Server::handleTopic(int fd, const std::vector<std::string> &args)
+{
+	Client *client = _clients[fd];
+
+	if (!client->isRegistered())
+		return ;
+
+	if (args.size() < 2)
+	{
+		sendError(fd, ERR_NEEDMOREPARAMS, "TOPIC :Not enough parameters");
+		return ;
+	}
+
+	const std::string &channelName = args[1];
+
+	if (_channels.find(channelName) == _channels.end())
+	{
+		sendError(fd, ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		return ;
+	}
+
+	Channel &chan = _channels[channelName];
+
+	if (!chan.hasMember(fd))
+	{
+		sendError(fd, ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		return ;
+	}
+
+	/*If only has 2 args (ex: TOPIC #general) show the topic of the channel, it can has no topic*/
+	if (args.size() == 2)
+	{
+		if (chan.getTopic().empty())
+		{
+			std::string msg = ":ircserv 331 " + client->getNickname() + " " + channelName + " :No topic is set\r\n";
+			send(fd, msg.c_str(), msg.size(), 0);
+		}
+		else
+		{
+			std::string msg = ":ircserv 332 " + client->getNickname() + " " + channelName + " :" + chan.getTopic() + "\r\n";
+			send(fd, msg.c_str(), msg.size(), 0);
+		}
+		return ;
+	}
+
+	/* pour unset topic faudrait modifier le parsing 🤔*/
+
+	chan.setTopic(args[2]);
+
+	std::string topicMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost TOPIC " + channelName + " :" + args[2] + "\r\n";
+	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
+		send(*it, topicMsg.c_str(), topicMsg.size(), 0);
+
+	/*C  ->  TOPIC #v3 :This is a cool channel!
+	  S <-   :dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!*/
+}
+
 void Server::handleMode(int fd, const std::vector<std::string> &args)
 {
 	Client *client = _clients[fd];
