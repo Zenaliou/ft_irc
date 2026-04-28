@@ -180,7 +180,14 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 	if (!trailing.empty())
 		tok.push_back(trailing);
 }
-
+/**
+ * @brief Execute the server/channel command
+ * @param cmd (Server) PASS | NICK | USER | JOIN | PRIVMSG | QUIT | PART
+ * @param cmd (Channel) KICK | INVITE | TOPIC | MODE
+ * @param fd Client's fd
+ * @param tokens parameters for commands
+ * @return Send error if the command is unknown
+ */
 void execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
 {
 	(void)cmd;

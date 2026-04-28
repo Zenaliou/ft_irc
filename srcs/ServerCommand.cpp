@@ -37,7 +37,7 @@ void Server::handlePass(int fd, const std::vector<std::string> &args)
  * @note usage: NICK <nickname>
  * @return send ERR_NONICKNAMEGIVEN, ERR_ERRONEUSNICKNAME or ERR_NICKNAMEINUSE in case of error
  */
-// TODO ERR_ERRONEUSNICKNAME
+// ? ERR_ERRONEUSNICKNAME -> Returned after receiving a NICK message which contains characters which do not fall in the defined set
 void Server::handleNick(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
