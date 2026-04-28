@@ -109,7 +109,7 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
  * @brief PRIVMSG command, used to send messages to user/channel.
  * @note usage: PRIVMSG <msgtarget> <text to be sent>
  * @note <msgtarget> is usually the nickname or channel name
- * @return send ERR_NEEDMOREPARAMS, ERR_NORECIPIENT, ERR_NOTEXTTOSEND, ERR_CANNOTSENDTOCHAN, 
+ * @return send ERR_NEEDMOREPARAMS, ERR_NORECIPIENT, ERR_NOTEXTTOSEND, ERR_CANNOTSENDTOCHAN,
  * 		ERR_TOOMANYTARGETS, ERR_NOSUCHNICK in case of error, else RPL_AWAY
  */
 void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
@@ -164,21 +164,21 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
  * @note usage: JOIN <channel> <key> OR JOIN 0
  * @note <channel> and <key> can be a list of args (multiple targets and keys)
  * @note 0 is used to PART from all channel
- * @return send ERR_NEEDMOREPARAMS, ERR_BANNEDFROMCHAN, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY, 
- * 		ERR_CHANNELISFULL, ERR_BADCHANMASK, ERR_NOSUCHCHANNEL, ERR_TOOMANYCHANNELS, 
+ * @return send ERR_NEEDMOREPARAMS, ERR_BANNEDFROMCHAN, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY,
+ * 		ERR_CHANNELISFULL, ERR_BADCHANMASK, ERR_NOSUCHCHANNEL, ERR_TOOMANYCHANNELS,
  * 		ERR_TOOMANYTARGETS or ERR_UNAVAILRESOURCE in case of error, else RPL_TOPIC + RPL_NAMREPLY
  */
-// TODO : ERR_BANNEDFROMCHAN
-// TODO : ERR_INVITEONLYCHAN
-// TODO : ERR_BADCHANNELKEY
-// TODO : ERR_CHANNELISFULL
-// TODO : ERR_NOSUCHCHANNEL
-// TODO : ERR_TOOMANYCHANNELS
-// TODO : ERR_TOOMANYTARGETS
-// TODO : ERR_UNAVAILRESOURCE
-// TODO : RPL_TOPIC
 void Server::handleJoin(int fd, const std::vector<std::string> &args)
 {
+	// TODO : ERR_BANNEDFROMCHAN
+	// TODO : ERR_INVITEONLYCHAN
+	// TODO : ERR_BADCHANNELKEY
+	// TODO : ERR_CHANNELISFULL
+	// TODO : ERR_NOSUCHCHANNEL
+	// TODO : ERR_TOOMANYCHANNELS
+	// TODO : ERR_TOOMANYTARGETS
+	// TODO : ERR_UNAVAILRESOURCE
+	// TODO : RPL_TOPIC
 	Client	*client = _clients[fd];
 
 	if (!client->isRegistered())
@@ -239,6 +239,12 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 	removeClient(fd);
 }
 
+/**
+ * @brief PART command, used to be removed from the list of active members for all given channels listed in parameter, sending an optionnal message
+ * @note usage : PART <channel> <part message>
+ * @note <channel> can be a list of args
+ * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL or ERR_NOTONCHANNEL in case of error
+ */
 void Server::handlePart(int fd, const std::vector<std::string> &args)
 {
 	Client *client = _clients[fd];
@@ -286,6 +292,13 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 		_channels.erase(channelName);
 }
 
+/**
+ * @brief TOPIC command, used to change or view the topic of a channel
+ * @note usage : TOPIC <channel> ( <topic> )
+ * @note If <topic> is present, the topic for <channel> will be changed. If <topic> is empty, the topic will be removed
+ * @return If there is no <topic>, the topic for <channel> is returned.
+ * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL or ERR_NOTONCHANNEL in case of error
+ */
 void Server::handleTopic(int fd, const std::vector<std::string> &args)
 {
 	Client *client = _clients[fd];
@@ -332,7 +345,7 @@ void Server::handleTopic(int fd, const std::vector<std::string> &args)
 	}
 
 	/* pour unset topic faudrait modifier le parsing 🤔*/
-	
+
 	chan.setTopic(args[2]);
 
 	std::string topicMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost TOPIC " + channelName + " :" + args[2] + "\r\n";
