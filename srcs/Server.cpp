@@ -213,7 +213,7 @@ void Server::execCommand(const std::string cmd, int fd, std::vector<std::string>
 	// else if (cmd == "MODE")
 	// 	handleMode(fd, tokens);
 	else
-		send(fd, "421 Unknown command\r\n", 21, 0);
+		sendError(fd, ERR_UNKNOWNCOMMAND, "Unknown command");
 }
 
 void Server::processMessage(int fd, const std::string &msg)
