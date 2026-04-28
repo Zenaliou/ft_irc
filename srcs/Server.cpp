@@ -188,25 +188,22 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
  * @param tokens parameters for commands
  * @return Send error if the command is unknown
  */
-void execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
+void Server::execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
 {
-	(void)cmd;
-	(void)fd;
-	(void)tokens;
-	// if (cmd == "PASS")
-	// 	handlePass(fd, tokens);
-	// else if (cmd == "NICK")
-	// 	handleNick(fd, tokens);
-	// else if (cmd == "USER")
-	// 	handleUser(fd, tokens);
-	// else if (cmd == "PRIVMSG")
-	// 	handlePrivmsg(fd, tokens);
-	// else if (cmd == "JOIN")
-	// 	handleJoin(fd, tokens);
-	// else if (cmd == "QUIT")
-	// 	handleQuit(fd, tokens);
-	// else
-	// 	send(fd, "421 Unknown command\r\n", 21, 0);
+	if (cmd == "PASS")
+		handlePass(fd, tokens);
+	else if (cmd == "NICK")
+		handleNick(fd, tokens);
+	else if (cmd == "USER")
+		handleUser(fd, tokens);
+	else if (cmd == "PRIVMSG")
+		handlePrivmsg(fd, tokens);
+	else if (cmd == "JOIN")
+		handleJoin(fd, tokens);
+	else if (cmd == "QUIT")
+		handleQuit(fd, tokens);
+	else
+		send(fd, "421 Unknown command\r\n", 21, 0);
 }
 
 void Server::processMessage(int fd, const std::string &msg)

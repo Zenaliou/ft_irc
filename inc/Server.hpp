@@ -44,6 +44,7 @@ class Server
 		void		removeClient(int fd);
 		static void	setNonBlocking(int fd);
 		void	handleClient(int fd);
+		void	execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens);
 		void	processMessage(int fd, const std::string &msg);
 
 		/*		ServerCommand.cpp		*/
