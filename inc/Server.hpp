@@ -62,6 +62,8 @@ class Server
 		void handleInvite(int fd, const std::vector<std::string> &args);
 		void handleMode(int fd, const std::vector<std::string> &args);
 
+		bool isValidChanName(int fd, const std::string &name);
+
 		/*		ServerMsg.cpp		*/
 		void sendWelcome(int fd);
 		void sendError(int fd, const std::string &code, const std::string &msg);
