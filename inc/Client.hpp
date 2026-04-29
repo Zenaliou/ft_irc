@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <set>
 #include <string>
 #include <csignal>
 #include <poll.h>
@@ -14,7 +15,7 @@
 #include <cerrno>
 #include <stdexcept>
 #include <cstdlib>
-	#include "Channel.hpp"
+#include "Channel.hpp"
 
 	class	Client
 	{
@@ -52,6 +53,7 @@
 			bool isUserSet() const;
 			bool isRegistered() const;
 
+			void addChannel(const std::string &chanName);
 			void closeConnection();
 			void send_msg(const std::string &msg);
 	};

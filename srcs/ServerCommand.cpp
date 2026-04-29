@@ -292,6 +292,7 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 	}
 
 	chan.addClient(fd);
+	client->addChannel(channelName);
 
 	// * vvv	RPL_TOPIC	vvv
 	std::string joinMsg = ":" + client->getNickname() + " JOIN" + channelName + "\r\n";

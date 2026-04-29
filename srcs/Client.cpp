@@ -21,6 +21,11 @@ bool Client::isNickSet() const { return (_nickSet); }
 bool Client::isUserSet() const { return (_userSet); }
 bool Client::isRegistered() const { return (_registered); }
 
+void Client::addChannel(const std::string &chanName)
+{
+	_channels.insert(chanName);
+}
+
 void Client::closeConnection()
 {
 	if (_fd >= 0)

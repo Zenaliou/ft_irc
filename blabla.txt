@@ -72,3 +72,14 @@ Comment tags :
 @return
 @note
 @warning
+
+
+MAX CHAR IRC MSG : 512, 510 + "\r\n"
+
+Max char nickname 9
+Max char channelname 50 (case insensitive) RFC 2811: 2.1
+
+Max chan in server ?
+Max chan a user can join ? 10 ?
+
+Max 15 param for command
