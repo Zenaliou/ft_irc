@@ -10,17 +10,19 @@
 		private:
 			std::string _name; // nom du channel
 			std::string _topic;
+			std::string _password;
+			int	_user_limit;
 			std::set<int> _clients_fd; // liste des membres
 			std::set<int> _inviteList;
 			std::set<int> _operators;
+
 			bool _inviteOnly; // MODE i
 			bool _topicRestricted; // MODE t
 			bool _operatorPri; //MODE o
-			std::string _password; // MODE k
-			int	_user_limit; //MODE l
-			bool _hasUserLimit; 
+			bool _hasUserLimit; // MODE l
+			bool _hasPass; // MODE k
+
 		public:
-			Channel();
 			Channel(const std::string &name);
 			~Channel();
 
@@ -56,6 +58,7 @@
 		bool isFull() const;
 		bool isOperatorPri() const;
 		bool hasUserLimit() const;
+		bool hasPass() const;
 };
 
 #endif
