@@ -226,5 +226,157 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 {
 	Client *client = _clients[fd];
 
+	if (!client->isRegistered())
+		return ;
 
+	if (args.size() < 2)
+	{
+		sendError(fd, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters");
+		return ;
+	}
+
+	const std::string &channelName = args[1];
+
+	if (_channels.find(channelName) == _channels.end())
+	{
+		sendError(fd, ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		return ;
+	}
+
+	Channel &chan = _channels[channelName];
+
+	if (args.size() == 2)
+	{
+		std::string modeStr = "+";
+		std::string params;
+		if (chan.isInviteOnly())    modeStr += "i";
+		if (chan.isTopicRestricted()) modeStr += "t";
+		if (chan.hasPassword())    { modeStr += "k"; params += " " + chan.getPassword(); }
+		if (chan.hasUserLimit())
+		{
+			std::ostringstream oss;
+			oss << chan.getUserLimit();
+			modeStr += "l";
+			params += " " + oss.str();
+		}
+		std::string reply = ":localhost 324 " + client->getNickname() + " " + channelName + " " + modeStr + params + "\r\n";
+		send(fd, reply.c_str(), reply.length(), 0);
+		return ;
+	}
+
+	if (!chan.hasMember(fd))
+	{
+		sendError(fd, ERR_NOTONCHANNEL, channelName + " :You're not on that channel");
+		return ;
+	}
+
+	if (!chan.isOperator(fd))
+	{
+		sendError(fd, ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		return ;
+	}
+
+	const std::string &modestring = args[2];
+	bool adding = true;
+	size_t paramIdx = 3;
+
+	std::string appliedModes;
+	std::string appliedParams;
+	bool lastSign = true;
+
+	for (size_t i = 0; i < modestring.size(); ++i)
+	{
+		char c = modestring[i];
+		if (c == '+') { adding = true; continue; }
+		if (c == '-') { adding = false; continue; }
+
+		switch (c)
+		{
+			case 'i':
+				chan.setInviteOnly(adding);
+				if (appliedModes.empty() || lastSign != adding)
+					{ appliedModes += (adding ? "+" : "-"); lastSign = adding; }
+				appliedModes += 'i';
+				break;
+			
+			case 't':
+				chan.setTopicRestricted(adding);
+				if (appliedModes.empty() || lastSign != adding)
+					{ appliedModes += (adding ? "+" : "-"); lastSign = adding; }
+				appliedModes += 't';
+				break;
+
+			case 'k':
+				if (adding)
+				{
+					if (paramIdx >= args.size())
+					{ sendError(fd, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters"); break; }
+					chan.setPassword(args[paramIdx]);
+					if (appliedModes.empty() || lastSign != adding)
+						{ appliedModes += "+"; lastSign = adding; }
+					appliedModes += 'k';
+					if (!appliedParams.empty()) appliedParams += " ";
+					appliedParams += args[paramIdx];
+					paramIdx++;
+				}
+				else
+				{
+					chan.setPassword("");
+					if (appliedModes.empty() || lastSign != adding)
+						{ appliedModes += "-"; lastSign = adding; }
+					appliedModes += 'k';
+					if (paramIdx < args.size()) paramIdx++;
+				}
+				break;
+
+			case 'l':
+				if (adding)
+				{
+					if (paramIdx >= args.size())
+					{ sendError(fd, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters"); break; }
+					int limit = std::atoi(args[paramIdx].c_str());
+					if (limit > 0)
+					{
+						chan.setUserLimit(limit);
+						if (appliedModes.empty() || lastSign != adding)
+							{ appliedModes += "+"; lastSign = adding; }
+						appliedModes += 'l';
+						std::ostringstream oss;
+						oss << limit;
+						if (!appliedParams.empty()) appliedParams += " ";
+						appliedParams += oss.str();
+					}
+					paramIdx++;
+				}
+				else
+				{
+					chan.setUserLimit(0);
+					if (appliedModes.empty() || lastSign != adding)
+						{ appliedModes += "-"; lastSign = adding; }
+					appliedModes += 'l';
+				}
+				break;
+
+			case 'o':
+				
+
+			default:
+			{
+				std::string errMsg = ":localhost 472 " + client->getNickname() + " " + c + " :is unknown mode char\r\n";
+				send(fd, errMsg.c_str(), errMsg.length(), 0);
+				break;
+			}
+		}
+	}
+	
+	if (!appliedModes.empty())
+	{
+		std::string modeMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost MODE " + channelName + " " + appliedModes;
+		if (!appliedParams.empty())
+			modeMsg += " " + appliedParams;
+		modeMsg += "\r\n";
+		const std::set<int> &members = chan.getClientsFd();
+		for (std::set<int>::const_iterator it = members.begin(); it != members.end(); ++it)
+			send(*it, modeMsg.c_str(), modeMsg.length(), 0);
+	}
 }
