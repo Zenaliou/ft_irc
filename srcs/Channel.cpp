@@ -25,6 +25,8 @@ bool Channel::isInviteOnly() const         { return _inviteOnly; }
 void Channel::setInviteOnly(bool val)      { _inviteOnly = val; }
 bool Channel::isTopicRestricted() const    { return _topicRestricted; }
 void Channel::setTopicRestricted(bool val) { _topicRestricted = val; }
+void Channel::setPassword(bool val) { _hasPass = val; }
+void Channel::setUserLimit(bool val) { _hasUserLimit = val; }
 void Channel::addInvite(int fd)            { _inviteList.insert(fd); }
 bool Channel::isInvited(int fd) const      { return _inviteList.count(fd) > 0; }
 

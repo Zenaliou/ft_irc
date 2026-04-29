@@ -45,6 +45,8 @@
 		void setInviteOnly(bool val);
 		bool isTopicRestricted() const;
 		void setTopicRestricted(bool val);
+		void setPassword(bool val);
+		void setUserLimit(bool val);
 		void addInvite(int fd);
 		bool isInvited(int fd) const;
 
