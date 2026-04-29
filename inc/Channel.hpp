@@ -45,22 +45,18 @@
 		void setInviteOnly(bool val);
 		bool isTopicRestricted() const;
 		void setTopicRestricted(bool val);
-		void setPassword(bool val);
-		void setUserLimit(bool val);
+
 		void addInvite(int fd);
 		bool isInvited(int fd) const;
 
 		const std::string &getPassword() const;
 		void setPassword(const std::string &pwd);
-		bool hasPassword() const;
+		bool hasPass() const;
 
 		int  getUserLimit() const;
 		void setUserLimit(int limit);
 		bool hasUserLimit() const;
 		bool isFull() const;
-		bool isOperatorPri() const;
-		bool hasUserLimit() const;
-		bool hasPass() const;
 };
 
 #endif

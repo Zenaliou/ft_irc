@@ -25,24 +25,28 @@ bool Channel::isInviteOnly() const         { return _inviteOnly; }
 void Channel::setInviteOnly(bool val)      { _inviteOnly = val; }
 bool Channel::isTopicRestricted() const    { return _topicRestricted; }
 void Channel::setTopicRestricted(bool val) { _topicRestricted = val; }
-void Channel::setPassword(bool val) { _hasPass = val; }
-void Channel::setUserLimit(bool val) { _hasUserLimit = val; }
+
 void Channel::addInvite(int fd)            { _inviteList.insert(fd); }
 bool Channel::isInvited(int fd) const      { return _inviteList.count(fd) > 0; }
 
-const std::string &Channel::getPassword() const       { return _password; }
-void Channel::setPassword(const std::string &pwd)     { _password = pwd; }
-bool Channel::hasPassword() const                     { return !_password.empty(); }
+const std::string &Channel::getPassword() const { return _password; }
+void Channel::setPassword(const std::string &pwd)
+{
+	_password = pwd;
+	_hasPass = !pwd.empty();
+}
+bool Channel::hasPass() const { return _hasPass; }
 
-int  Channel::getUserLimit() const    { return _user_limit; }
-void Channel::setUserLimit(int limit) { _user_limit = limit; }
-bool Channel::hasUserLimit() const    { return _user_limit > 0; }
+int  Channel::getUserLimit() const { return _user_limit; }
+void Channel::setUserLimit(int limit)
+{
+	_user_limit = limit;
+	_hasUserLimit = (limit > 0);
+}
+bool Channel::hasUserLimit() const { return _hasUserLimit; }
 bool Channel::isFull() const
 {
-	if (!hasUserLimit())
+	if (!_hasUserLimit)
 		return false;
 	return getMemberCount() >= _user_limit;
 }
-bool Channel::isOperatorPri() const { return _operatorPri; }
-bool Channel::hasUserLimit() const { return _hasUserLimit; }
-bool Channel::hasPass() const { return _hasPass; }

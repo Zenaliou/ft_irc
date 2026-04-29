@@ -251,7 +251,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 		std::string params;
 		if (chan.isInviteOnly())    modeStr += "i";
 		if (chan.isTopicRestricted()) modeStr += "t";
-		if (chan.hasPassword())    { modeStr += "k"; params += " " + chan.getPassword(); }
+		if (chan.hasPass())    { modeStr += "k"; params += " " + chan.getPassword(); }
 		if (chan.hasUserLimit())
 		{
 			std::ostringstream oss;
@@ -311,14 +311,17 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 				{
 					if (paramIdx >= args.size())
 					{ sendError(fd, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters"); break; }
+
 					chan.setPassword(args[paramIdx]);
 					if (appliedModes.empty() || lastSign != adding)
 						{ appliedModes += "+"; lastSign = adding; }
 					appliedModes += 'k';
+
 					if (!appliedParams.empty()) appliedParams += " ";
 					appliedParams += args[paramIdx];
 					paramIdx++;
 				}
+
 				else
 				{
 					chan.setPassword("");
@@ -358,14 +361,44 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 				break;
 
 			case 'o':
-				
+				{
+					if (paramIdx >= args.size())
+						{ sendError(fd, ERR_NEEDMOREPARAMS, "MODE :Not enough parameters"); break; }
+
+					const std::string &nick = args[paramIdx];
+					int targetFd = -1;
+					for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+					{
+						if (it->second->getNickname() == nick)
+						{ targetFd = it->first; break; }
+					}
+
+					if (targetFd == -1)
+					{ sendError(fd, ERR_NOSUCHNICK, nick + " :No such nick/channel"); paramIdx++; break; }
+					
+					if (!chan.hasMember(targetFd))
+					{ sendError(fd, ERR_USERNOTINCHANNEL, nick + " " + channelName + " :They aren't on that channel"); paramIdx++; break; }
+
+					if (adding)
+						chan.addOperator(targetFd);
+					else
+						chan.removeOperator(targetFd);
+
+					if (appliedModes.empty() || lastSign != adding)
+						{ appliedModes += (adding ? "+" : "-"); lastSign = adding; }
+					appliedModes += 'o';
+					if (!appliedParams.empty()) appliedParams += " ";
+					appliedParams += nick;
+					paramIdx++;
+					break;
+				}
 
 			default:
-			{
-				std::string errMsg = ":localhost 472 " + client->getNickname() + " " + c + " :is unknown mode char\r\n";
-				send(fd, errMsg.c_str(), errMsg.length(), 0);
-				break;
-			}
+				{
+					std::string errMsg = ":localhost 472 " + client->getNickname() + " " + c + " :is unknown mode char\r\n";
+					send(fd, errMsg.c_str(), errMsg.length(), 0);
+					break;
+				}
 		}
 	}
 	
