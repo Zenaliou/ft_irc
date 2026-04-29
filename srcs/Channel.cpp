@@ -25,6 +25,8 @@ void Channel::setTopic(const std::string &topic)     { _topic = topic; }
 
 bool Channel::isInviteOnly() const         { return _inviteOnly; }
 void Channel::setInviteOnly(bool val)      { _inviteOnly = val; }
+bool Channel::isTopicRestricted() const    { return _topicRestricted; }
+void Channel::setTopicRestricted(bool val) { _topicRestricted = val; }
 void Channel::addInvite(int fd)            { _inviteList.insert(fd); }
 bool Channel::isInvited(int fd) const      { return _inviteList.count(fd) > 0; }
 
@@ -41,3 +43,5 @@ bool Channel::isFull() const
 		return false;
 	return getMemberCount() >= _user_limit;
 }
+bool Channel::isOperatorPri() const { return _operatorPri; }
+bool Channel::hasUserLimit() const { return _hasUserLimit; }
