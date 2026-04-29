@@ -14,8 +14,11 @@
 			std::set<int> _inviteList;
 			std::set<int> _operators;
 			bool _inviteOnly; // MODE i
+			bool _topicRestricted; // MODE t
+			bool _operatorPri; //MODE o
 			std::string _password; // MODE k
 			int	_user_limit; //MODE l
+			bool _hasUserLimit; 
 		public:
 			Channel();
 			Channel(const std::string &name);
@@ -38,6 +41,8 @@
 
 		bool isInviteOnly() const;
 		void setInviteOnly(bool val);
+		bool isTopicRestricted() const;
+		void setTopicRestricted(bool val);
 		void addInvite(int fd);
 		bool isInvited(int fd) const;
 
@@ -49,6 +54,8 @@
 		void setUserLimit(int limit);
 		bool hasUserLimit() const;
 		bool isFull() const;
+		bool isOperatorPri() const;
+		bool hasUserLimit() const;
 };
 
 #endif
