@@ -26,13 +26,11 @@
 			std::set<std::string> _channels;
 
 			bool _passOk;
-			bool _registered;
 			bool _nickSet;
 			bool _userSet;
-			// bool _isAuthenticated;
+			bool _registered;
 
 		public:
-			Client();
 			Client(int fd);
 			~Client();
 			std::string	_buffer;
@@ -41,18 +39,18 @@
 			void setUsername(const std::string &username);
 			void setRealname(const std::string &realname);
 			void setPassOk(const bool boolean);
-			void setRegistered(const bool boolean);
 			void setNickSet(const bool boolean);
 			void setUserSet(const bool boolean);
+			void setRegistered(const bool boolean);
 
 			int getFd() const;
 			const std::string getNickname() const;
 			const std::string getUsername() const;
 			const std::string getRealname() const;
 			bool isPassOk() const;
-			bool isRegistered() const;
 			bool isNickSet() const;
 			bool isUserSet() const;
+			bool isRegistered() const;
 
 			void closeConnection();
 			void send_msg(const std::string &msg);

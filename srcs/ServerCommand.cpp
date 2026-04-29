@@ -211,26 +211,43 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 	}
 }
 
+bool isValidChanChar(char c)
+{
+	if (c == '\0' || c == '\a' || c == '\n' || c == '\r' || c == ' ' || c == ',' || c == ':')
+		return (false);
+	return (true);
+}
+
+bool Server::isValidChanName(int fd, const std::string &name)
+{
+	if (name[0] != '#' && name[0] != '&')
+	{
+		sendError(fd, ERR_BADCHANMASK, name + " :Bad Channel Mask");
+		return (false);
+	}
+
+	for (size_t i = 1; i < name.length(); ++i)
+	{
+		char c = name[i];
+		if (!isValidChanChar(c))
+		{
+			sendError(fd, ERR_NOSUCHCHANNEL, name + " :No such channel");
+			return (false);
+		}
+	}
+	return (true);
+}
+
 /**
  * @brief JOIN command, used to start listening to specific channel.
  * @note usage: JOIN <channel> <key> OR JOIN 0
  * @note <channel> and <key> can be a list of args (multiple targets and keys)
  * @note 0 is used to PART from all channel
- * @return send ERR_NEEDMOREPARAMS, ERR_BANNEDFROMCHAN, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY,
- * 		ERR_CHANNELISFULL, ERR_BADCHANMASK, ERR_NOSUCHCHANNEL, ERR_TOOMANYCHANNELS,
- * 		ERR_TOOMANYTARGETS or ERR_UNAVAILRESOURCE in case of error, else RPL_TOPIC + RPL_NAMREPLY
+ * @return send ERR_NEEDMOREPARAMS, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY, ERR_CHANNELISFULL,
+ * 		ERR_BADCHANMASK, ERR_NOSUCHCHANNEL or ERR_TOOMANYCHANNELS in case of error, else RPL_TOPIC + RPL_NAMREPLY
  */
 void Server::handleJoin(int fd, const std::vector<std::string> &args)
 {
-	// TODO : ERR_BANNEDFROMCHAN -> check liste bans
-	// TODO : ERR_INVITEONLYCHAN -> check isInviteOnly()
-	// TODO : ERR_BADCHANNELKEY -> check _password
-	// TODO : ERR_CHANNELISFULL -> check _user_limit
-	// TODO : ERR_NOSUCHCHANNEL -> check la syntaxe.... et non l'existence du channel (pcq si channel existe pas -> le creer)
-	// TODO : ERR_TOOMANYCHANNELS -> Pas de limite explicite, depend du server... set a 10 channel ?
-	// TODO : ERR_TOOMANYTARGETS -> Pareil, pas de limite, depend du server... check sur les listes d'args
-	// TODO : ERR_UNAVAILRESOURCE -> Pas vraiment a gerer pour ft_irc
-	// TODO : RPL_TOPIC
 	Client	*client = _clients[fd];
 
 	if (!client->isRegistered())
@@ -243,17 +260,40 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 	}
 
 	const std::string &channelName = args[1];
-	if (channelName[0] != '#' && channelName[0] != '&')
-	{
-		sendError(fd, ERR_BADCHANMASK, channelName + " :Bad Channel Mask");
-	}
+	std::string password = "";
+	if (args.size() == 3)
+		password = args[2];
+
+	if (!isValidChanName(fd, channelName))
+		return ;
 
 	if (_channels.find(channelName) == _channels.end())
+	{
+	// TODO : ERR_TOOMANYCHANNELS -> Pas de limite explicite, depend du server... set a 10 channel ?
 		_channels.insert(std::make_pair(channelName, Channel(channelName)));
+	}
 
 	Channel &chan = _channels[channelName];
+
+	if (chan.isInviteOnly() && !chan.isInvited(fd))
+	{
+		sendError(fd, ERR_INVITEONLYCHAN, channelName + " :Cannot join channel (+i)");
+		return ;
+	}
+	if (chan.hasPass() && !(password == chan.getPassword()))
+	{
+		sendError(fd, ERR_BADCHANNELKEY, channelName + " :Cannot join channel (+k)");
+		return ;
+	}
+	if (chan.hasUserLimit() && (chan.getMemberCount() + 1) > chan.getUserLimit())
+	{
+		sendError(fd, ERR_CHANNELISFULL, channelName + " :Cannot join channel (+l)");
+		return ;
+	}
+
 	chan.addClient(fd);
 
+	// * vvv	RPL_TOPIC	vvv
 	std::string joinMsg = ":" + client->getNickname() + " JOIN" + channelName + "\r\n";
 	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		send(*it, joinMsg.c_str(), joinMsg.size(), 0);
