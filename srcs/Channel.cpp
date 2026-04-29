@@ -1,9 +1,7 @@
 #include "../inc/Channel.hpp"
 
-Channel::Channel() : _inviteOnly(false), _user_limit(0) {}
-
 Channel::Channel(const std::string &name)
-	: _name(name), _inviteOnly(false), _user_limit(0) {}
+	: _name(name), _user_limit(100), _inviteOnly(false), _topicRestricted(false), _operatorPri(false), _hasUserLimit(false), _hasPass(false) {}
 
 Channel::~Channel() {}
 
@@ -45,3 +43,4 @@ bool Channel::isFull() const
 }
 bool Channel::isOperatorPri() const { return _operatorPri; }
 bool Channel::hasUserLimit() const { return _hasUserLimit; }
+bool Channel::hasPass() const { return _hasPass; }
