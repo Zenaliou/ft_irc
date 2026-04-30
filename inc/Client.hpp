@@ -54,6 +54,7 @@
 			bool isRegistered() const;
 
 			void addChannel(const std::string &chanName);
+			void removeChannel(const std::string &chanName);
 			void closeConnection();
 			void send_msg(const std::string &msg);
 	};

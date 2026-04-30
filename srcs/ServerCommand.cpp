@@ -367,7 +367,7 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	std::string reason = channelName;
+	std::string reason = client->getNickname();
 	if (args.size() > 2)
 		reason = args[2];
 
@@ -380,6 +380,7 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 		send(*it, partMsg.c_str(), partMsg.size(), 0);
 
 	chan.removeClient(fd);
+	client->removeChannel(channelName);
 
 	if (chan.getMemberCount() == 0)
 		_channels.erase(channelName);
