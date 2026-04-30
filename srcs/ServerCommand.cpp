@@ -241,7 +241,6 @@ bool Server::isValidChanName(int fd, const std::string &name)
 /**
  * @brief JOIN command, used to start listening to specific channel.
  * @note usage: JOIN <channel> <key> OR JOIN 0
- * @note <channel> and <key> can be a list of args (multiple targets and keys)
  * @note 0 is used to PART from all channel
  * @return send ERR_NEEDMOREPARAMS, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY, ERR_CHANNELISFULL,
  * 		ERR_BADCHANMASK, ERR_NOSUCHCHANNEL or ERR_TOOMANYCHANNELS in case of error, else RPL_TOPIC + RPL_NAMREPLY
@@ -263,6 +262,12 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 	std::string password = "";
 	if (args.size() == 3)
 		password = args[2];
+
+	if (channelName == "0")
+	{
+		handleJoinZero(client);
+		return ;
+	}
 
 	if (!isValidChanName(fd, channelName))
 		return ;
@@ -300,16 +305,27 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 		send(*it, joinMsg.c_str(), joinMsg.size(), 0);
 }
 
+void Server::handleJoinZero(Client *client)
+{
+	std::set<std::string> channels = client->getChannels();
+	std::vector<std::string> partArgs;
+	partArgs.push_back("PART");
+
+	for (std::set<std::string>::iterator it = channels.begin(); it != channels.end(); ++it)
+	{
+		std::string channel = *it;
+		partArgs.push_back(channel);
+		handlePart(client->getFd(), partArgs);
+	}
+}
+
 /**
  * @brief QUIT command, used to terminate a client session with a message
  * @note usage: QUIT <Quit message>
  */
 void Server::handleQuit(int fd, const std::vector<std::string> &args)
 {
-	std::map<int, Client*>::iterator it = _clients.find(fd);
-	if (it == _clients.end())
-		return ;
-	Client *client = it->second;
+	Client *client = _clients[fd];
 
 	std::string reason = "Client Quit";
 	if (args.size() > 1)
@@ -319,23 +335,28 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 	for(std::map<std::string, Channel>::iterator chan_map = _channels.begin(); chan_map != _channels.end(); ++chan_map)
 	{
 		Channel &chan = chan_map->second;
-		if (chan.getClientsFd().empty())
+		std::string channelName = chan.getName();
+		if (chan.hasMember(fd))
 		{
-			for(std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
-			{
-				if (*it != fd)
-					send(*it, quitMsg.c_str(), quitMsg.size(), 0);
-			}
 			chan.removeClient(fd);
+			client->removeChannel(channelName);
+
+			if (chan.getMemberCount() == 0)
+				_channels.erase(channelName);
 		}
 	}
+
+	for(std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	{
+		send(it->first, quitMsg.c_str(), quitMsg.size(), 0);
+	}
+
 	removeClient(fd);
 }
 
 /**
- * @brief PART command, used to be removed from the list of active members for all given channels listed in parameter, sending an optionnal message
+ * @brief PART command, used to be removed from the list of active members for the given channel in parameter, sending an optionnal message
  * @note usage : PART <channel> <part message>
- * @note <channel> can be a list of args
  * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL or ERR_NOTONCHANNEL in case of error
  */
 void Server::handlePart(int fd, const std::vector<std::string> &args)

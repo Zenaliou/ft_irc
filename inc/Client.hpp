@@ -52,6 +52,7 @@
 			bool isNickSet() const;
 			bool isUserSet() const;
 			bool isRegistered() const;
+			const std::set<std::string> &getChannels() const;
 
 			void addChannel(const std::string &chanName);
 			void removeChannel(const std::string &chanName);

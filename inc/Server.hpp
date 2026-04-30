@@ -54,6 +54,7 @@ class Server
 		void handleUser(int fd, const std::vector<std::string> &args);
 		void handlePrivmsg(int fd, const std::vector<std::string> &args);
 		void handleJoin(int fd, const std::vector<std::string> &args);
+		void handleJoinZero(Client *client);
 		void handleQuit(int fd, const std::vector<std::string> &args);
 
 		void handlePart(int fd, const std::vector<std::string> &args);

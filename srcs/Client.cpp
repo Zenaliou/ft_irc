@@ -20,6 +20,7 @@ bool Client::isPassOk() const { return (_passOk); }
 bool Client::isNickSet() const { return (_nickSet); }
 bool Client::isUserSet() const { return (_userSet); }
 bool Client::isRegistered() const { return (_registered); }
+const std::set<std::string> &Client::getChannels() const { return (_channels); }
 
 void Client::addChannel(const std::string &chanName) { _channels.insert(chanName); }
 void Client::removeChannel(const std::string &chanName) { _channels.erase(chanName); }
