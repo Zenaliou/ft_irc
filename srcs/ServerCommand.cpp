@@ -387,23 +387,40 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 		reason = args[1];
 	std::string quitMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost QUIT :" + reason + "\r\n";
 
+	// Collecter tous les clients qui doivent recevoir le message QUIT
+	std::set<int> recipients;
+	std::vector<std::string> emptyChannels;
+
 	for(std::map<std::string, Channel>::iterator chan_map = _channels.begin(); chan_map != _channels.end(); ++chan_map)
 	{
 		Channel &chan = chan_map->second;
 		std::string channelName = chan.getName();
 		if (chan.hasMember(fd))
 		{
+			// Ajouter tous les membres du channel aux destinataires (sauf celui qui quitte)
+			const std::set<int> &members = chan.getClientsFd();
+			for (std::set<int>::const_iterator it = members.begin(); it != members.end(); ++it)
+			{
+				if (*it != fd)
+					recipients.insert(*it);
+			}
+
 			chan.removeClient(fd);
 			client->removeChannel(channelName);
 
 			if (chan.getMemberCount() == 0)
-				_channels.erase(channelName);
+				emptyChannels.push_back(channelName);
 		}
 	}
 
-	for(std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
+	// Supprimer les channels vides (après l'itération pour éviter l'invalidation d'itérateur)
+	for (std::vector<std::string>::iterator it = emptyChannels.begin(); it != emptyChannels.end(); ++it)
+		_channels.erase(*it);
+
+	// Envoyer le message QUIT aux destinataires
+	for (std::set<int>::iterator it = recipients.begin(); it != recipients.end(); ++it)
 	{
-		send(it->first, quitMsg.c_str(), quitMsg.size(), 0);
+		send(*it, quitMsg.c_str(), quitMsg.size(), 0);
 	}
 
 	removeClient(fd);

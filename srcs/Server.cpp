@@ -116,6 +116,62 @@ void Server::acceptClient()
 
 void Server::removeClient(int fd)
 {
+	std::map<int, Client *>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return;
+
+	Client *client = it->second;
+
+	std::set<int> recipients;
+	std::vector<std::string> emptyChannels;
+
+	if (client->isRegistered())
+	{
+		std::string quitMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost QUIT :Connection closed\r\n";
+
+		for (std::map<std::string, Channel>::iterator ch = _channels.begin(); ch != _channels.end(); ++ch)
+		{
+			Channel &chan = ch->second;
+			if (chan.hasMember(fd))
+			{
+				// Ajouter tous les membres du channel aux destinataires (sauf celui qui part)
+				const std::set<int> &members = chan.getClientsFd();
+				for (std::set<int>::const_iterator mem = members.begin(); mem != members.end(); ++mem)
+				{
+					if (*mem != fd)
+						recipients.insert(*mem);
+				}
+
+				chan.removeClient(fd);
+				client->removeChannel(ch->first);
+
+				if (chan.getMemberCount() == 0)
+					emptyChannels.push_back(ch->first);
+			}
+		}
+
+		for (std::set<int>::iterator rec = recipients.begin(); rec != recipients.end(); ++rec)
+		{
+			send(*rec, quitMsg.c_str(), quitMsg.size(), 0);
+		}
+	}
+	else
+	{
+		for (std::map<std::string, Channel>::iterator ch = _channels.begin(); ch != _channels.end(); ++ch)
+		{
+			Channel &chan = ch->second;
+			if (chan.hasMember(fd))
+			{
+				chan.removeClient(fd);
+				if (chan.getMemberCount() == 0)
+					emptyChannels.push_back(ch->first);
+			}
+		}
+	}
+
+	for (std::vector<std::string>::iterator emp = emptyChannels.begin(); emp != emptyChannels.end(); ++emp)
+		_channels.erase(*emp);
+
 	for (size_t i = 0; i < _pollfds.size(); i++)
 	{
 		if (_pollfds[i].fd == fd)
@@ -125,15 +181,9 @@ void Server::removeClient(int fd)
 		}
 	}
 
-	for (std::map<std::string, Channel>::iterator ch = _channels.begin(); ch != _channels.end(); ++ch)
-		ch->second.removeClient(fd);
-
-	std::map<int, Client *>::iterator it = _clients.find(fd);
-	if (it != _clients.end())
-	{
-		delete it->second;
-		_clients.erase(it);
-	}
+	close(fd);
+	delete client;
+	_clients.erase(it);
 
 	std::cout << "Client disconnected: fd " << fd << std::endl;
 }
