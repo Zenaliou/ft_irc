@@ -17,6 +17,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <cerrno>
+#include <cstring>
 #include <stdexcept>
 #include <cstdlib>
 #include <cctype>
@@ -52,6 +53,7 @@ class Server
 		void handlePass(int fd, const std::vector<std::string> &args);
 		void handleNick(int fd, const std::vector<std::string> &args);
 		void handleUser(int fd, const std::vector<std::string> &args);
+		void handleCap(int fd, const std::vector<std::string> &args);
 		void handlePrivmsg(int fd, const std::vector<std::string> &args);
 		void handleJoin(int fd, const std::vector<std::string> &args);
 		void handleJoinZero(Client *client);

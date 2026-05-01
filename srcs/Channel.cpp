@@ -1,7 +1,7 @@
 #include "../inc/Channel.hpp"
 
 Channel::Channel(const std::string &name)
-	: _name(name), _user_limit(100), _inviteOnly(false), _topicRestricted(false), _operatorPri(false), _hasUserLimit(false), _hasPass(false) {}
+	: _name(name), _user_limit(100), _inviteOnly(false), _topicRestricted(false), _hasUserLimit(false), _hasPass(false) {}
 
 Channel::~Channel() {}
 

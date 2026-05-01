@@ -145,6 +145,46 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
 }
 
 /**
+ * @brief CAP command, used for IRCv3 capability negotiation
+ * @note usage: CAP LS|LIST|REQ|ACK|NAK|END [capabilities]
+ * @note This is a minimal implementation for compatibility with modern IRC clients
+ */
+void Server::handleCap(int fd, const std::vector<std::string> &args)
+{
+	if (args.size() < 2)
+		return;
+
+	const std::string &subcommand = args[1];
+	
+	if (subcommand == "LS")
+	{
+		// Send empty capability list (we don't support any IRCv3 capabilities)
+		std::string msg = ":ircserv CAP * LS :\r\n";
+		send(fd, msg.c_str(), msg.size(), 0);
+	}
+	else if (subcommand == "REQ")
+	{
+		// Reject all capability requests
+		if (args.size() >= 3)
+		{
+			std::string msg = ":ircserv CAP * NAK :" + args[2] + "\r\n";
+			send(fd, msg.c_str(), msg.size(), 0);
+		}
+	}
+	else if (subcommand == "END")
+	{
+		// Client ends capability negotiation, nothing to do
+		return;
+	}
+	else if (subcommand == "LIST")
+	{
+		// Send empty list of active capabilities
+		std::string msg = ":ircserv CAP * LIST :\r\n";
+		send(fd, msg.c_str(), msg.size(), 0);
+	}
+}
+
+/**
  * @brief PRIVMSG command, used to send messages to user/channel.
  * @note usage: PRIVMSG <msgtarget> <text to be sent>
  * @note <msgtarget> is usually the nickname or channel name
@@ -190,7 +230,14 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 			return ;
 		}
 
-		Channel &chan = _channels[target];
+		Channel &chan = _channels.find(target)->second;
+		
+		if (!chan.hasMember(fd))
+		{
+			sendError(fd, ERR_NOTONCHANNEL, target + " :You're not on that channel");
+			return;
+		}
+		
 		for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		{
 			if (*it != fd)
@@ -278,7 +325,10 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 		_channels.insert(std::make_pair(channelName, Channel(channelName)));
 	}
 
-	Channel &chan = _channels[channelName];
+	Channel &chan = _channels.find(channelName)->second;
+
+	if (chan.hasMember(fd))
+		return;
 
 	if (chan.isInviteOnly() && !chan.isInvited(fd))
 	{
@@ -296,11 +346,16 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
+	bool isFirstMember = (chan.getMemberCount() == 0);
+	
 	chan.addClient(fd);
 	client->addChannel(channelName);
 
+	if (isFirstMember)
+		chan.addOperator(fd);
+
 	// * vvv	RPL_TOPIC	vvv
-	std::string joinMsg = ":" + client->getNickname() + " JOIN" + channelName + "\r\n";
+	std::string joinMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost JOIN " + channelName + "\r\n";
 	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		send(*it, joinMsg.c_str(), joinMsg.size(), 0);
 }
@@ -330,7 +385,7 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 	std::string reason = "Client Quit";
 	if (args.size() > 1)
 		reason = args[1];
-	std::string quitMsg = ":" + client->getNickname() + " QUIT :" + reason + "\r\n";
+	std::string quitMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost QUIT :" + reason + "\r\n";
 
 	for(std::map<std::string, Channel>::iterator chan_map = _channels.begin(); chan_map != _channels.end(); ++chan_map)
 	{
@@ -380,7 +435,7 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	Channel &chan = _channels[channelName];
+	Channel &chan = _channels.find(channelName)->second;
 
 	if (!chan.hasMember(fd))
 	{

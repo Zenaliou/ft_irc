@@ -31,7 +31,7 @@ void Server::handleKick(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	Channel &chan = _channels[channelName];
+	Channel &chan = _channels.find(channelName)->second;
 
 	if (!chan.hasMember(fd))
 	{
@@ -68,7 +68,7 @@ void Server::handleKick(int fd, const std::vector<std::string> &args)
 	}
 
 	std::string reason = targetNick;
-	if (args.size() > 3)
+	if (args.size() > 3 && !args[3].empty())
 		reason = args[3];
 
 	std::string kickMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost KICK " + channelName + " " + targetNick + " :" + reason + "\r\n";
@@ -80,6 +80,10 @@ void Server::handleKick(int fd, const std::vector<std::string> &args)
 	}
 
 	chan.removeClient(targetFd);
+	_clients[targetFd]->removeChannel(channelName);
+
+	if (chan.getMemberCount() == 0)
+		_channels.erase(channelName);
 }
 
 /**
@@ -107,7 +111,13 @@ void Server::handleInvite(int fd, const std::vector<std::string> &args)
 	const std::string &channelName = args[1];
 	const std::string &targetNick = args[2];
 
-	Channel chan = _channels[channelName];
+	if (_channels.find(channelName) == _channels.end())
+	{
+		sendError(fd, ERR_NOSUCHCHANNEL, channelName + " :No such channel");
+		return ;
+	}
+
+	Channel &chan = _channels.find(channelName)->second;
 
 	if (!chan.hasMember(fd))
 	{
@@ -137,25 +147,19 @@ void Server::handleInvite(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	if (!chan.hasMember(targetFd))
+	if (chan.hasMember(targetFd))
 	{
-		sendError(fd, ERR_USERNOTINCHANNEL, targetNick + " " + channelName + " :They aren't on that channel");
+		sendError(fd, ERR_USERONCHANNEL, targetNick + " " + channelName + " :is already on channel");
 		return ;
 	}
 
-	std::string reason = targetNick;
-	if (args.size() > 3)
-		reason = args[3];
+	chan.addInvite(targetFd);
 
-	std::string inviteMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost INVITE " + channelName + " " + targetNick + " :" + reason + "\r\n";
+	std::string inviteMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost INVITE " + targetNick + " :" + channelName + "\r\n";
+	send(targetFd, inviteMsg.c_str(), inviteMsg.length(), 0);
 
-	const std::set<int> &members = chan.getClientsFd();
-	for (std::set<int>::const_iterator it = members.begin(); it != members.end(); ++it)
-	{
-		send(*it, inviteMsg.c_str(), inviteMsg.length(), 0);
-	}
-
-	chan.addClient(targetFd);
+	std::string confirmMsg = ":ircserv 341 " + client->getNickname() + " " + targetNick + " " + channelName + "\r\n";
+	send(fd, confirmMsg.c_str(), confirmMsg.length(), 0);
 }
 
 /**
@@ -186,7 +190,7 @@ void Server::handleTopic(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	Channel &chan = _channels[channelName];
+	Channel &chan = _channels.find(channelName)->second;
 
 	if (!chan.hasMember(fd))
 	{
@@ -211,6 +215,12 @@ void Server::handleTopic(int fd, const std::vector<std::string> &args)
 	}
 
 	/* pour unset topic faudrait modifier le parsing 🤔*/
+
+	if (chan.isTopicRestricted() && !chan.isOperator(fd))
+	{
+		sendError(fd, ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
+		return;
+	}
 
 	chan.setTopic(args[2]);
 
@@ -243,7 +253,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	Channel &chan = _channels[channelName];
+	Channel &chan = _channels.find(channelName)->second;
 
 	if (args.size() == 2)
 	{
@@ -259,7 +269,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 			modeStr += "l";
 			params += " " + oss.str();
 		}
-		std::string reply = ":localhost 324 " + client->getNickname() + " " + channelName + " " + modeStr + params + "\r\n";
+		std::string reply = ":ircserv 324 " + client->getNickname() + " " + channelName + " " + modeStr + params + "\r\n";
 		send(fd, reply.c_str(), reply.length(), 0);
 		return ;
 	}
@@ -395,8 +405,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 
 			default:
 				{
-					std::string errMsg = ":localhost 472 " + client->getNickname() + " " + c + " :is unknown mode char\r\n";
-					send(fd, errMsg.c_str(), errMsg.length(), 0);
+					sendError(fd, ERR_UNKNOWNMODEFLAG, std::string(1, c) + " :is unknown mode char");
 					break;
 				}
 		}

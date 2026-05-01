@@ -18,7 +18,7 @@
 
 			bool _inviteOnly; // MODE i
 			bool _topicRestricted; // MODE t
-			bool _operatorPri; //MODE o
+			// bool _operatorPri; //MODE o
 			bool _hasUserLimit; // MODE l
 			bool _hasPass; // MODE k
 

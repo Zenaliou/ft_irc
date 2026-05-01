@@ -141,15 +141,28 @@ void Server::removeClient(int fd)
 void Server::handleClient(int fd)
 {
 	char buf[512];
+	std::memset(buf, 0, sizeof(buf));
 	int n = recv(fd, buf, sizeof(buf) - 1, 0);
 
-	if (n <= 0 )
+	if (n < 0)
+	{
+		if (errno == EAGAIN || errno == EWOULDBLOCK)
+			return;
+		removeClient(fd);
+		return;
+	}
+	else if (n == 0)
 	{
 		removeClient(fd);
 		return;
 	}
 
-	Client *client = _clients[fd];
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	if (it == _clients.end())
+		return;
+
+	Client *client = it->second;
+	buf[n] = '\0';
 	client->_buffer.append(buf, n);
 
 	size_t pos;
@@ -191,7 +204,9 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
  */
 void Server::execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
 {
-	if (cmd == "PASS")
+	// if (cmd == "CAP")
+	// 	handleCap(fd, tokens);
+	 if (cmd == "PASS")
 		handlePass(fd, tokens);
 	else if (cmd == "NICK")
 		handleNick(fd, tokens);
@@ -211,8 +226,8 @@ void Server::execCommand(const std::string cmd, int fd, std::vector<std::string>
 		handleInvite(fd, tokens);
 	else if (cmd == "TOPIC")
 		handleTopic(fd, tokens);
-	// else if (cmd == "MODE")
-	// 	handleMode(fd, tokens);
+	else if (cmd == "MODE")
+		handleMode(fd, tokens);
 	else
 		sendError(fd, ERR_UNKNOWNCOMMAND, "Unknown command");
 }

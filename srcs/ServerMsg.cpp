@@ -3,13 +3,19 @@
 void Server::sendWelcome(int fd)
 {
 	Client *client = _clients[fd];
-	std::string msg = ":ircserv 001 " + client->getNickname() + ":Welcome to IRC\r\n";
+	std::string msg = ":ircserv 001 " + client->getNickname() + " :Welcome to IRC\r\n";
 	send(fd, msg.c_str(), msg.size(), 0);
 }
 
 void Server::sendError(int fd, const std::string &code, const std::string &msg)
 {
-	std::string errmsg = ":ircserv " + code + " " + msg + "\r\n";
+	std::map<int, Client*>::iterator it = _clients.find(fd);
+	std::string nickname = "*";
+	
+	if (it != _clients.end() && it->second->isNickSet())
+		nickname = it->second->getNickname();
+	
+	std::string errmsg = ":ircserv " + code + " " + nickname + " " + msg + "\r\n";
 	send(fd, errmsg.c_str(), errmsg.size(), 0);
 }
 
