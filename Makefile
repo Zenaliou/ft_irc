@@ -1,15 +1,24 @@
 CC      = c++
-CFLAGS  = -Wall -Werror -Wextra -std=c++98 -Isrcs -g3
+CFLAGS  = -Wall -Werror -Wextra -std=c++98 -g3
 
-SRC_DIR     = srcs/
-OBJ_DIR     = obj/
-INCLUDE_DIR = includes/
+# Mandatory
+MAND_SRC_DIR = mandatory/srcs/
+MAND_INC_DIR = mandatory/inc/
+MAND_OBJ_DIR = mandatory/obj/
+MAND_SRCS    = $(shell find $(MAND_SRC_DIR) -name '*.cpp')
+MAND_OBJS    = $(MAND_SRCS:$(MAND_SRC_DIR)%.cpp=$(MAND_OBJ_DIR)%.o)
+MAND_DEPS    = $(MAND_OBJS:.o=.d)
 
-SRCS = $(shell find $(SRC_DIR) -name '*.cpp')
-OBJS = $(SRCS:$(SRC_DIR)%.cpp=$(OBJ_DIR)%.o)
-DEPS = $(OBJS:.o=.d)
+# Bonus
+BONUS_SRC_DIR = bonus/srcs/
+BONUS_INC_DIR = bonus/inc/
+BONUS_OBJ_DIR = bonus/obj/
+BONUS_SRCS    = $(shell find $(BONUS_SRC_DIR) -name '*.cpp')
+BONUS_OBJS    = $(BONUS_SRCS:$(BONUS_SRC_DIR)%.cpp=$(BONUS_OBJ_DIR)%.o)
+BONUS_DEPS    = $(BONUS_OBJS:.o=.d)
 
-NAME = ircserver
+NAME       = ircserv
+BONUS_NAME = ircbot
 
 GREEN   = \033[1;32m
 RED     = \033[1;31m
@@ -19,32 +28,49 @@ CYAN    = \033[1;36m
 NC      = \033[0m
 
 all: $(NAME)
-	@echo "$(CYAN)🚀 Tout est prêt !$(NC)"
+	@echo "$(CYAN)🚀 Partie mandatoire prête !$(NC)"
 
-$(NAME): $(OBJ_DIR) $(OBJS)
+bonus: $(NAME) $(BONUS_NAME)
+	@echo "$(CYAN)🌟 Bonus compilé avec succès !$(NC)"
+
+$(NAME): $(MAND_OBJ_DIR) $(MAND_OBJS)
 	@echo "$(YELLOW)⏳ Compilation de $(NAME)...$(NC)"
-	@$(CC) $(CFLAGS) $(OBJS) -o $(NAME)
+	@$(CC) $(CFLAGS) $(MAND_OBJS) -o $(NAME)
 	@echo "$(GREEN)✓ Compilation de $(NAME) réussie!$(NC)"
 
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)
-	@echo "$(BLUE)📁 Dossier obj créé.$(NC)"
+$(BONUS_NAME): $(BONUS_OBJ_DIR) $(BONUS_OBJS)
+	@echo "$(YELLOW)⏳ Compilation de $(BONUS_NAME)...$(NC)"
+	@$(CC) $(CFLAGS) $(BONUS_OBJS) -o $(BONUS_NAME)
+	@echo "$(GREEN)✓ Compilation de $(BONUS_NAME) réussie!$(NC)"
 
-$(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
+$(MAND_OBJ_DIR):
+	@mkdir -p $(MAND_OBJ_DIR)
+	@echo "$(BLUE)📁 Dossier mandatory/obj créé.$(NC)"
+
+$(BONUS_OBJ_DIR):
+	@mkdir -p $(BONUS_OBJ_DIR)
+	@echo "$(BLUE)📁 Dossier bonus/obj créé.$(NC)"
+
+$(MAND_OBJ_DIR)%.o: $(MAND_SRC_DIR)%.cpp
 	@mkdir -p $(dir $@)
-	@$(CC) $(CFLAGS) -MMD -MP -c $< -o $@
+	@$(CC) $(CFLAGS) -I$(MAND_INC_DIR) -MMD -MP -c $< -o $@
 
--include $(DEPS)
+$(BONUS_OBJ_DIR)%.o: $(BONUS_SRC_DIR)%.cpp
+	@mkdir -p $(dir $@)
+	@$(CC) $(CFLAGS) -I$(BONUS_INC_DIR) -MMD -MP -c $< -o $@
+
+-include $(MAND_DEPS)
+-include $(BONUS_DEPS)
 
 clean:
-	@rm -rf $(OBJ_DIR)
+	@rm -rf $(MAND_OBJ_DIR) $(BONUS_OBJ_DIR)
 	@echo "$(RED)🧹 Fichiers objets supprimés.$(NC)"
 
 fclean: clean
-	@rm -f $(NAME)
-	@echo "$(RED)🗑️ Exécutable $(NAME) supprimé.$(NC)"
+	@rm -f $(NAME) $(BONUS_NAME)
+	@echo "$(RED)🗑️ Exécutables supprimés.$(NC)"
 
 re: fclean all
 	@echo "$(CYAN)🔁 Recompilation terminée.$(NC)"
 
-.PHONY: all clean fclean re
+.PHONY: all bonus clean fclean re
