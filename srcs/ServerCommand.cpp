@@ -478,3 +478,14 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 	if (chan.getMemberCount() == 0)
 		_channels.erase(channelName);
 }
+void Server::handlePing(int fd, const std::vector<std::string> &args)
+{
+	if (args.size() < 2)
+	{
+		sendError(fd, ERR_NOORIGIN, ":No origin specified");
+		return;
+	}
+	const std::string &origin = args[1];
+	std::string pongMsg = "PONG :" + origin + "\r\n";
+	send(fd, pongMsg.c_str(), pongMsg.size(), 0);
+}

@@ -64,6 +64,7 @@ class Server
 		void handleKick(int fd, const std::vector<std::string> &args);
 		void handleInvite(int fd, const std::vector<std::string> &args);
 		void handleMode(int fd, const std::vector<std::string> &args);
+		void handlePing(int fd, const std::vector<std::string> &args);
 
 		bool isValidChanName(int fd, const std::string &name);
 

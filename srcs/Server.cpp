@@ -282,6 +282,8 @@ void Server::execCommand(const std::string cmd, int fd, std::vector<std::string>
 		handleTopic(fd, tokens);
 	else if (cmd == "MODE")
 		handleMode(fd, tokens);
+	else if (cmd == "PING")
+		handlePing(fd, tokens);
 	else
 		sendError(fd, ERR_UNKNOWNCOMMAND, "Unknown command");
 }
