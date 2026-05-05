@@ -216,10 +216,14 @@ void Server::handleClient(int fd)
 	client->_buffer.append(buf, n);
 
 	size_t pos;
-	while ((pos = client->_buffer.find("\r\n")) != std::string::npos)
+	while ((pos = client->_buffer.find("\n")) != std::string::npos)
 	{
 		std::string line = client->_buffer.substr(0, pos);
-		client->_buffer.erase(0, pos + 2);
+		client->_buffer.erase(0, pos + 1);
+		
+		if (!line.empty() && line[line.size() - 1] == '\r')
+			line.erase(line.size() - 1);
+		
 		if (!line.empty())
 			processMessage(fd, line);
 	}
@@ -254,9 +258,9 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
  */
 void Server::execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
 {
-	// if (cmd == "CAP")
-	// 	handleCap(fd, tokens);
-	 if (cmd == "PASS")
+	if (cmd == "CAP")
+		handleCap(fd, tokens);
+	else if (cmd == "PASS")
 		handlePass(fd, tokens);
 	else if (cmd == "NICK")
 		handleNick(fd, tokens);

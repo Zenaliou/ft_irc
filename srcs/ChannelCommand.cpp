@@ -108,8 +108,8 @@ void Server::handleInvite(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	const std::string &channelName = args[1];
-	const std::string &targetNick = args[2];
+	const std::string &targetNick = args[1];
+	const std::string &channelName = args[2];
 
 	if (_channels.find(channelName) == _channels.end())
 	{
@@ -125,7 +125,7 @@ void Server::handleInvite(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	if (!chan.isOperator(fd))
+	if (chan.isInviteOnly() && !chan.isOperator(fd))
 	{
 		sendError(fd, ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		return ;
