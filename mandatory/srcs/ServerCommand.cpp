@@ -81,6 +81,10 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 	}
 
 	std::string newNickname = args[1];
+
+	if (client->getNickname() == newNickname)
+		return;
+
 	if (!isValidNickname(newNickname))
 	{
 		sendError(fd, ERR_ERRONEUSNICKNAME, newNickname + " :Erroneous nickname");
@@ -89,7 +93,7 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 
 	for (std::map<int, Client*>::iterator it = _clients.begin(); it != _clients.end(); ++it)
 	{
-		if (it->second->getNickname() == newNickname)
+		if (it->first != fd && it->second->getNickname() == newNickname)
 		{
 			sendError(fd, ERR_NICKNAMEINUSE, "Nickname is already in use");
 			return ;
@@ -321,7 +325,13 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 
 	if (_channels.find(channelName) == _channels.end())
 	{
-	// TODO : ERR_TOOMANYCHANNELS -> Pas de limite explicite, depend du server... set a 10 channel ?
+	// ERR_TOOMANYCHANNELS -> Pas de limite explicite, depend du server... set a 10 channel
+		if (client->getChannelCount() >= MAX_CHANNELS)
+		{
+			sendError(fd, ERR_TOOMANYCHANNELS, channelName + " :Too many channels");
+			return;
+		}
+	
 		_channels.insert(std::make_pair(channelName, Channel(channelName)));
 	}
 

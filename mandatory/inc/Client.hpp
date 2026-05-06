@@ -56,6 +56,7 @@
 
 			void addChannel(const std::string &chanName);
 			void removeChannel(const std::string &chanName);
+			size_t getChannelCount() const;
 			void closeConnection();
 			void send_msg(const std::string &msg);
 	};

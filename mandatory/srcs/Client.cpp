@@ -24,6 +24,7 @@ const std::set<std::string> &Client::getChannels() const { return (_channels); }
 
 void Client::addChannel(const std::string &chanName) { _channels.insert(chanName); }
 void Client::removeChannel(const std::string &chanName) { _channels.erase(chanName); }
+size_t Client::getChannelCount() const { return _channels.size();}
 
 void Client::closeConnection()
 {

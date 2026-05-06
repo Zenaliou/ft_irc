@@ -1,6 +1,8 @@
 #ifndef SERVER_HPP
 #define SERVER_HPP
 
+#define MAX_CHANNELS 10
+
 #include "../inc/Client.hpp"
 #include "../inc/Channel.hpp"
 #include "../inc/ErrorCode.hpp"
