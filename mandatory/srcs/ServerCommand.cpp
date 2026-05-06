@@ -95,7 +95,7 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 	{
 		if (it->first != fd && it->second->getNickname() == newNickname)
 		{
-			sendError(fd, ERR_NICKNAMEINUSE, "Nickname is already in use");
+			sendError(fd, ERR_NICKNAMEINUSE, newNickname + " :Nickname is already in use");
 			return ;
 		}
 	}
