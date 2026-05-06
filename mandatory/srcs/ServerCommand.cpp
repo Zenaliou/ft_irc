@@ -221,7 +221,17 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 	}
 
 	const std::string &target = args[1];
-	const std::string &msg = args[2];
+	
+	// Reconstruit le message à partir de args[2] jusqu'à la fin
+	// Car si l'utilisateur n'a pas mis ":" le message est découpé en plusieurs args
+	std::string msg;
+	for (size_t i = 2; i < args.size(); i++)
+	{
+		if (i > 2)
+			msg += " ";
+		msg += args[i];
+	}
+	
 	std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost ";
 	std::string fullMsg = prefix + "PRIVMSG " + target + " :" + msg + "\r\n";
 
