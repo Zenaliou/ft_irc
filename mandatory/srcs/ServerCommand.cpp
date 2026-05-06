@@ -122,7 +122,6 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
  */
 void Server::handleUser(int fd, const std::vector<std::string> &args)
 {
-	// TODO args[2] pour set le mode
 	Client	*client = _clients[fd];
 
 	if (client->isRegistered())
@@ -282,7 +281,7 @@ bool Server::isValidChanName(int fd, const std::string &name)
 		char c = name[i];
 		if (!isValidChanChar(c))
 		{
-			sendError(fd, ERR_NOSUCHCHANNEL, name + " :No such channel");
+			sendError(fd, ERR_BADCHANMASK, name + " :Bad Channel Mask");
 			return (false);
 		}
 	}
@@ -364,10 +363,36 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 	if (isFirstMember)
 		chan.addOperator(fd);
 
-	// * vvv	RPL_TOPIC	vvv
 	std::string joinMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost JOIN " + channelName + "\r\n";
 	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		send(*it, joinMsg.c_str(), joinMsg.size(), 0);
+
+	if (chan.getTopic().empty())
+	{
+		std::string msg = ":ircserv 331 " + client->getNickname() + " " + channelName + " :No topic is set\r\n";
+		send(fd, msg.c_str(), msg.size(), 0);
+	}
+	else
+	{
+		std::string msg = ":ircserv 332 " + client->getNickname() + " " + channelName + " :" + chan.getTopic() + "\r\n";
+		send(fd, msg.c_str(), msg.size(), 0);
+	}
+
+	std::string names;
+	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it !=chan.getClientsFd().end(); ++it)
+	{
+		Client *c = _clients[*it];
+		if (chan.isOperator(*it))
+			names += "@";
+		names += c->getNickname() + " ";
+	}
+	std::string rplNames = "= " + channelName + " :" + names + "\r\n";
+	std::string msg353 = ":ircserv 353 " + client->getNickname() + " " + rplNames;
+	send(fd, msg353.c_str(), msg353.size(), 0);
+
+	std::string endMsg = ":ircserv 366 " + client->getNickname() + " " + channelName + " :End of /NAMES list\r\n";
+	send(fd, endMsg.c_str(), endMsg.size(), 0);
+
 }
 
 void Server::handleJoinZero(Client *client)

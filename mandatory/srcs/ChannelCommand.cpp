@@ -10,7 +10,6 @@
  */
 void Server::handleKick(int fd, const std::vector<std::string> &args)
 {
-	// ? ERR_BADCHANMASK
 	Client *client = _clients[fd];
 
 	if (!client->isRegistered())
@@ -24,6 +23,9 @@ void Server::handleKick(int fd, const std::vector<std::string> &args)
 
 	const std::string &channelName = args[1];
 	const std::string &targetNick = args[2];
+
+	if (!isValidChanName(fd, channelName))
+		return;
 
 	if (_channels.find(channelName) == _channels.end())
 	{
