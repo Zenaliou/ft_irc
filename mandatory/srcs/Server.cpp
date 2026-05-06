@@ -244,8 +244,9 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 	std::string word;
 	while (iss >> word)
 		tok.push_back(word);
-	if (!trailing.empty())
-		tok.push_back(trailing);
+	if (!trailing.empty() && trailing[0] == ':')
+		trailing = trailing.substr(1);
+	tok.push_back(trailing);
 }
 
 /**

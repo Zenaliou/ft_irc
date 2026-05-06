@@ -216,17 +216,16 @@ void Server::handleTopic(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	/* pour unset topic faudrait modifier le parsing 🤔*/
-
 	if (chan.isTopicRestricted() && !chan.isOperator(fd))
 	{
 		sendError(fd, ERR_CHANOPRIVSNEEDED, channelName + " :You're not channel operator");
 		return;
 	}
 
-	chan.setTopic(args[2]);
+	std::string newTopic = args[2];
+	chan.setTopic(newTopic);
 
-	std::string topicMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost TOPIC " + channelName + " :" + args[2] + "\r\n";
+	std::string topicMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
 	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		send(*it, topicMsg.c_str(), topicMsg.size(), 0);
 
