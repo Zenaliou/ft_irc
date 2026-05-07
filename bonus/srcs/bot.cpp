@@ -21,6 +21,7 @@ Bot::~Bot()
 {
 	if (_sockfd >= 0)
 	{
+		signal(SIGPIPE, SIG_IGN);
 		sendRaw("QUIT :Bot shutting down\r\n");
 		close(_sockfd);
 	}
@@ -38,10 +39,18 @@ void Bot::connect()
 	server_addr.sin_port = htons(_port);
 	
 	if (inet_pton(AF_INET, _host.c_str(), &server_addr.sin_addr) <= 0)
+	{
+		close(_sockfd);
+		_sockfd = -1;
 		throw std::runtime_error("Invalid address");
+	}
 
 	if (::connect(_sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0)
+	{
+		close(_sockfd);
+		_sockfd = -1;
 		throw std::runtime_error("Connection failed");
+	}
 
 	std::cout << "Connected to " << _host << ":" << _port << std::endl;
 }
