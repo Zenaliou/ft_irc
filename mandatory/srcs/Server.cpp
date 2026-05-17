@@ -14,7 +14,7 @@ void Server::setNonBlocking(int fd)
 	int flags = fcntl(fd, F_GETFL, 0);
 	if (flags == -1)
 		throw std::runtime_error("fcntl F_GETFL failed");
-	if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+	if (fcntl(fd, F_SETFL, O_NONBLOCK) == -1)
 		throw std::runtime_error("fctl F_SETFL failed");
 }
 
@@ -95,8 +95,7 @@ void Server::acceptClient()
 	int client_fd = accept(_serverFd, NULL, NULL);
 	if (client_fd < 0)
 	{
-		if (errno != EAGAIN && errno != EWOULDBLOCK)
-			std::cerr << "accept() failed" << std::endl;
+		std::cerr << "accept() failed" << std::endl;
 		return;
 	}
 
@@ -196,8 +195,6 @@ void Server::handleClient(int fd)
 
 	if (n < 0)
 	{
-		if (errno == EAGAIN || errno == EWOULDBLOCK)
-			return;
 		removeClient(fd);
 		return;
 	}
