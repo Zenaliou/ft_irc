@@ -228,11 +228,13 @@ void Server::handleClient(int fd)
 
 void parseMessage(std::vector<std::string> &tok, std::string &line)
 {
-	std::string trailing; // Si ":" -> un seul argument
+	bool hasTrailing = false;
+	std::string trailing;
 
 	size_t pos = line.find(" :");
 	if (pos != std::string::npos)
 	{
+		hasTrailing = true;
 		trailing = line.substr(pos + 2);
 		line = line.substr(0, pos);
 	}
@@ -241,7 +243,7 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 	std::string word;
 	while (iss >> word)
 		tok.push_back(word);
-	if (!trailing.empty())
+	if (hasTrailing)
 		tok.push_back(trailing);
 }
 
