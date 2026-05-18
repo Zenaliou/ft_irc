@@ -158,7 +158,7 @@ void Server::handleCap(int fd, const std::vector<std::string> &args)
 		return;
 
 	const std::string &subcommand = args[1];
-	
+
 	if (subcommand == "LS")
 	{
 		// Send empty capability list (we don't support any IRCv3 capabilities)
@@ -221,7 +221,7 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 	}
 
 	const std::string &target = args[1];
-	
+
 	// Reconstruit le message à partir de args[2] jusqu'à la fin
 	// Car si l'utilisateur n'a pas mis ":" le message est découpé en plusieurs args
 	std::string msg;
@@ -231,7 +231,7 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 			msg += " ";
 		msg += args[i];
 	}
-	
+
 	std::string prefix = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost ";
 	std::string fullMsg = prefix + "PRIVMSG " + target + " :" + msg + "\r\n";
 
@@ -244,13 +244,13 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 		}
 
 		Channel &chan = _channels.find(target)->second;
-		
+
 		if (!chan.hasMember(fd))
 		{
 			sendError(fd, ERR_NOTONCHANNEL, target + " :You're not on that channel");
 			return;
 		}
-		
+
 		for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		{
 			if (*it != fd)
@@ -340,7 +340,7 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 			sendError(fd, ERR_TOOMANYCHANNELS, channelName + " :Too many channels");
 			return;
 		}
-	
+
 		_channels.insert(std::make_pair(channelName, Channel(channelName)));
 	}
 
@@ -366,7 +366,7 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 	}
 
 	bool isFirstMember = (chan.getMemberCount() == 0);
-	
+
 	chan.addClient(fd);
 	client->addChannel(channelName);
 
@@ -416,6 +416,7 @@ void Server::handleJoinZero(Client *client)
 		std::string channel = *it;
 		partArgs.push_back(channel);
 		handlePart(client->getFd(), partArgs);
+		partArgs.pop_back();
 	}
 }
 
