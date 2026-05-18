@@ -2,8 +2,7 @@
 
 /**
  * @brief KICK command, used to request the forced removal of a user from a channel. It causes the <user> to PART by force
- * @note usage : KICK <channel> <user> ( <comment> )
- * @note <channel> and <user> can be a list of args
+ * @note usage : KICK <channel> <user> [<comment>]
  * @note if <comment> is given, it replaces the default message sent
  * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL, ERR_BADCHANMASK, ERR_CHANOPRIVSNEEDED,
  * ERR_USERNOTINCHANNEL or ERR_NOTONCHANNEL in case of error
@@ -166,7 +165,7 @@ void Server::handleInvite(int fd, const std::vector<std::string> &args)
 
 /**
  * @brief TOPIC command, used to change or view the topic of a channel
- * @note usage : TOPIC <channel> ( <topic> )
+ * @note usage : TOPIC <channel> [<topic>]
  * @note If <topic> is present, the topic for <channel> will be changed. If <topic> is empty, the topic will be removed
  * @return If there is no <topic>, the topic for <channel> is returned.
  * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL or ERR_NOTONCHANNEL in case of error
@@ -200,7 +199,6 @@ void Server::handleTopic(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	/*If only has 2 args (ex: TOPIC #general) show the topic of the channel, it can has no topic*/
 	if (args.size() == 2)
 	{
 		if (chan.getTopic().empty())
@@ -228,11 +226,20 @@ void Server::handleTopic(int fd, const std::vector<std::string> &args)
 	std::string topicMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost TOPIC " + channelName + " :" + newTopic + "\r\n";
 	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		send(*it, topicMsg.c_str(), topicMsg.size(), 0);
-
-	/*C  ->  TOPIC #v3 :This is a cool channel!
-	  S <-   :dan!d@Clk-830D7DDC TOPIC #v3 :This is a cool channel!*/
 }
 
+/**
+ * @brief MODE command, used to set or modify user or channel modes (permissions and settings)
+ * @note usage : MODE <channel> {[+|-]o|i|t|k|l} [<limit>|<user>|<password>]
+ * @note '+' to add a mode, '-' to remove a mode
+ * @note 'o' for chanop mode <user>
+ * @note 'i' for invite-only mode
+ * @note 't' for chanop-only topic mode
+ * @note 'k' for password mode <password>
+ * @note 'l' for channel limitation mode <limit>
+ * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL, ERR_NOTONCHANNEL, ERR_CHANOPRIVSNEEDED, ERR_NOSUCHNICK,
+ * 		ERR_NOSUCHNICK ERR_USERNOTINCHANNEL or ERR_UNKNOWNMODEFLAG in case of error
+ */
 void Server::handleMode(int fd, const std::vector<std::string> &args)
 {
 	Client *client = _clients[fd];
@@ -260,9 +267,9 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 	{
 		std::string modeStr = "+";
 		std::string params;
-		if (chan.isInviteOnly())    modeStr += "i";
-		if (chan.isTopicRestricted()) modeStr += "t";
-		if (chan.hasPass())    { modeStr += "k"; params += " " + chan.getPassword(); }
+		if (chan.isInviteOnly())	modeStr += "i";
+		if (chan.isTopicRestricted())	modeStr += "t";
+		if (chan.hasPass())	{ modeStr += "k"; params += " " + chan.getPassword(); }
 		if (chan.hasUserLimit())
 		{
 			std::ostringstream oss;
@@ -309,7 +316,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 					{ appliedModes += (adding ? "+" : "-"); lastSign = adding; }
 				appliedModes += 'i';
 				break;
-			
+
 			case 't':
 				chan.setTopicRestricted(adding);
 				if (appliedModes.empty() || lastSign != adding)
@@ -386,7 +393,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 
 					if (targetFd == -1)
 					{ sendError(fd, ERR_NOSUCHNICK, nick + " :No such nick/channel"); paramIdx++; break; }
-					
+
 					if (!chan.hasMember(targetFd))
 					{ sendError(fd, ERR_USERNOTINCHANNEL, nick + " " + channelName + " :They aren't on that channel"); paramIdx++; break; }
 
@@ -411,7 +418,7 @@ void Server::handleMode(int fd, const std::vector<std::string> &args)
 				}
 		}
 	}
-	
+
 	if (!appliedModes.empty())
 	{
 		std::string modeMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost MODE " + channelName + " " + appliedModes;

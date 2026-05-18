@@ -116,8 +116,8 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 }
 
 /**
- * @brief USER command, used to specify username, hostname and realname of a new user.
- * @note usage: USER <user> <mode> <unused> <realname>
+ * @brief USER command, used to specify username and realname of a new user.
+ * @note usage: USER <username> <unused> <unused> <realname>
  * @return send ERR_NEEDMOREPARAMS, ERR_ALREADYREGISTERED in case of error
  */
 void Server::handleUser(int fd, const std::vector<std::string> &args)
@@ -136,7 +136,6 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
 		return ;
 	}
 
-	// args[2] et args[3] inutiles pour ft_irc (hostname et servername = :ircserver)
 	std::string username = args[1];
 	std::string realname = args[4];
 
@@ -222,8 +221,6 @@ void Server::handlePrivmsg(int fd, const std::vector<std::string> &args)
 
 	const std::string &target = args[1];
 
-	// Reconstruit le message à partir de args[2] jusqu'à la fin
-	// Car si l'utilisateur n'a pas mis ":" le message est découpé en plusieurs args
 	std::string msg;
 	for (size_t i = 2; i < args.size(); i++)
 	{
@@ -306,7 +303,7 @@ bool Server::isValidChanName(int fd, const std::string &name)
 
 /**
  * @brief JOIN command, used to start listening to specific channel.
- * @note usage: JOIN <channel> <key> OR JOIN 0
+ * @note usage: JOIN <channel> [<key>] OR JOIN 0
  * @note 0 is used to PART from all channel
  * @return send ERR_NEEDMOREPARAMS, ERR_INVITEONLYCHAN, ERR_BADCHANNELKEY, ERR_CHANNELISFULL,
  * 		ERR_BADCHANMASK, ERR_NOSUCHCHANNEL or ERR_TOOMANYCHANNELS in case of error, else RPL_TOPIC + RPL_NAMREPLY
@@ -340,7 +337,6 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 
 	if (_channels.find(channelName) == _channels.end())
 	{
-	// ERR_TOOMANYCHANNELS -> Pas de limite explicite, depend du server... set a 10 channel
 		if (client->getChannelCount() >= MAX_CHANNELS)
 		{
 			sendError(fd, ERR_TOOMANYCHANNELS, channelName + " :Too many channels");
@@ -428,7 +424,7 @@ void Server::handleJoinZero(Client *client)
 
 /**
  * @brief QUIT command, used to terminate a client session with a message
- * @note usage: QUIT <Quit message>
+ * @note usage: QUIT [<Quit message>]
  */
 void Server::handleQuit(int fd, const std::vector<std::string> &args)
 {
@@ -439,7 +435,6 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 		reason = args[1];
 	std::string quitMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost QUIT :" + reason + "\r\n";
 
-	// Collecter tous les clients qui doivent recevoir le message QUIT
 	std::set<int> recipients;
 	std::vector<std::string> emptyChannels;
 
@@ -449,7 +444,6 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 		std::string channelName = chan.getName();
 		if (chan.hasMember(fd))
 		{
-			// Ajouter tous les membres du channel aux destinataires (sauf celui qui quitte)
 			const std::set<int> &members = chan.getClientsFd();
 			for (std::set<int>::const_iterator it = members.begin(); it != members.end(); ++it)
 			{
@@ -465,11 +459,9 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 		}
 	}
 
-	// Supprimer les channels vides (après l'itération pour éviter l'invalidation d'itérateur)
 	for (std::vector<std::string>::iterator it = emptyChannels.begin(); it != emptyChannels.end(); ++it)
 		_channels.erase(*it);
 
-	// Envoyer le message QUIT aux destinataires
 	for (std::set<int>::iterator it = recipients.begin(); it != recipients.end(); ++it)
 	{
 		send(*it, quitMsg.c_str(), quitMsg.size(), 0);
@@ -480,7 +472,7 @@ void Server::handleQuit(int fd, const std::vector<std::string> &args)
 
 /**
  * @brief PART command, used to be removed from the list of active members for the given channel in parameter, sending an optionnal message
- * @note usage : PART <channel> <part message>
+ * @note usage : PART <channel> [<part message>]
  * @return ERR_NEEDMOREPARAMS, ERR_NOSUCHCHANNEL or ERR_NOTONCHANNEL in case of error
  */
 void Server::handlePart(int fd, const std::vector<std::string> &args)
@@ -518,9 +510,6 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 
 	std::string partMsg = ":" + client->getNickname() + "!" + client->getUsername() + "@localhost PART " + channelName + " :" + reason + "\r\n";
 
-	/*C  ->  part #irctest :I'm joined to too many channels already
-	  S <-   :alice!a@localhost PART #irctest :I'm joined to too many channels already*/
-
 	for (std::set<int>::const_iterator it = chan.getClientsFd().begin(); it != chan.getClientsFd().end(); ++it)
 		send(*it, partMsg.c_str(), partMsg.size(), 0);
 
@@ -530,6 +519,7 @@ void Server::handlePart(int fd, const std::vector<std::string> &args)
 	if (chan.getMemberCount() == 0)
 		_channels.erase(channelName);
 }
+
 void Server::handlePing(int fd, const std::vector<std::string> &args)
 {
 	if (args.size() < 2)

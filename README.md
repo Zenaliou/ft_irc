@@ -12,14 +12,14 @@ The server handles multiple simultaneous clients using non-blocking I/0 and the 
 It supports basic IRC commands such as:
 - PASS : command used to set a connection password
 - NICK : command used to give a nickname or change the previous one
-- USER : command used at the beginning of connection to specify the username, hostname, servername and realname of new user
+- USER : command used at the beginning of connection to specify the username and realname of new user
 - JOIN : command used to join a channel
 - PART : command used to leave a channel
 - PRIVMSG : command used to send a private message to a user or a channel
 - QUIT : command used to disconnect from the server
 - PING : command used to check if the connection is still alive
 - KICK : command used to remove a user from a channel
-- INVITE : command used to invite a user  from a channel
+- INVITE : command used to invite a user to a channel
 - TOPIC : command used to set or view the topic of a channel
 - MODE : command used to set or modify user or channel modes (permissions and settings).
 
@@ -63,22 +63,24 @@ irssi
 
 ** With netcat :***
 ```bash
-nc -C localhost <password>
+nc -C localhost <port>
 PASS <password>
 NICK <nickname>
 USER <username> <hostname> <servername> <realname>
 ```
 
 Commands after client connection:
-JOIN <channel>{,<channel>} [<key>{,<key>}]
-PART <channel>{,<channel>}
-PRIVMSG <receiver>{,<receiver>} <text to be sent>
+```bash
+JOIN <channel> [<key>]
+PART <channel> [<part message>]
+PRIVMSG <target> <text to be sent>
 QUIT [<Quit message>]
 PING <server>
 KICK <channel> <user> [<comment>]
 INVITE <nickname> <channel>
 TOPIC <channel> [<topic>]
-MODE <channel> {[+|-]|o|i|t} [<limit>] [<user>]
+MODE <channel> {[+|-]o|i|t|k|l} [<limit>|<user>|<password>]
+```
 
 ### Testing bonus
 
@@ -100,7 +102,13 @@ On client2 connection :
 
 ### Documentation
 
-RFC 1459 - IRC Protocol : https://datatracker.ietf.org/doc/html/rfc1459
+[RFC 1459 - IRC Protocol](https://datatracker.ietf.org/doc/html/rfc1459)
+
+[RFC 2812 - IRC Protocol](https://datatracker.ietf.org/doc/html/rfc2812)
+
+[RFC 2811 - IRC Protocol](https://datatracker.ietf.org/doc/html/rfc2811)
+
+[RFC 2813 - IRC Protocol](https://datatracker.ietf.org/doc/html/rfc2813)
 
 
 ### AI Usage
