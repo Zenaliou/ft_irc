@@ -221,9 +221,15 @@ void Server::handleClient(int fd)
 		if (!line.empty() && line[line.size() - 1] == '\r')
 			line.erase(line.size() - 1);
 
+		if (line.size() > 510)
+			line = line.substr(0, 510);
+
 		if (!line.empty())
 			processMessage(fd, line);
 	}
+
+	if (client->_buffer.size() > 512)
+		client->_buffer.erase(510);
 }
 
 void parseMessage(std::vector<std::string> &tok, std::string &line)
