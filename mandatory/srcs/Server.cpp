@@ -234,6 +234,7 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 	if (pos != std::string::npos)
 	{
 		trailing = line.substr(pos + 2);
+		std::cout << "trailing: " << trailing << std::endl;
 		line = line.substr(0, pos);
 	}
 
@@ -241,9 +242,12 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
 	std::string word;
 	while (iss >> word)
 		tok.push_back(word);
-	if (!trailing.empty() && trailing[0] == ':')
-		trailing = trailing.substr(1);
-	tok.push_back(trailing);
+	if (!trailing.empty())
+	{
+		std::cout << "trailing: " << trailing << std::endl;
+		tok.push_back(trailing);
+		std::cout << "trailing1: " << trailing << std::endl;
+	}
 }
 
 /**
@@ -256,6 +260,10 @@ void parseMessage(std::vector<std::string> &tok, std::string &line)
  */
 void Server::execCommand(const std::string cmd, int fd, std::vector<std::string> &tokens)
 {
+	std::cout << "----- ";
+	for (std::vector<std::string>::iterator it = tokens.begin(); it != tokens.end(); ++it)
+		std::cout << *it << "|";
+	std::cout << std::endl;
 	if (cmd == "CAP")
 		handleCap(fd, tokens);
 	else if (cmd == "PASS")
