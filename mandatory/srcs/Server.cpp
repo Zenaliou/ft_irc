@@ -40,8 +40,8 @@ Server::Server(int port, const std::string &password) : _port(port), _password(p
 	setNonBlocking(_serverFd);
 
 	struct pollfd p;
-	p.fd      = _serverFd;
-	p.events  = POLLIN;
+	p.fd = _serverFd;
+	p.events = POLLIN;
 	p.revents = 0;
 	_pollfds.push_back(p);
 
@@ -133,7 +133,6 @@ void Server::removeClient(int fd)
 			Channel &chan = ch->second;
 			if (chan.hasMember(fd))
 			{
-				// Ajouter tous les membres du channel aux destinataires (sauf celui qui part)
 				const std::set<int> &members = chan.getClientsFd();
 				for (std::set<int>::const_iterator mem = members.begin(); mem != members.end(); ++mem)
 				{
