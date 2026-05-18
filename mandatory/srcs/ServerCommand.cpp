@@ -400,7 +400,7 @@ void Server::handleJoin(int fd, const std::vector<std::string> &args)
 	std::string msg353 = ":ircserv 353 " + client->getNickname() + " " + rplNames;
 	send(fd, msg353.c_str(), msg353.size(), 0);
 
-	std::string endMsg = ":ircserv 366 " + client->getNickname() + " " + channelName + " :End of /NAMES list\r\n";
+	std::string endMsg = ":ircserv 366 " + client->getNickname() + " " + channelName + " :End of list\r\n";
 	send(fd, endMsg.c_str(), endMsg.size(), 0);
 
 }
