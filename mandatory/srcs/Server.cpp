@@ -226,6 +226,9 @@ void Server::handleClient(int fd)
 
 		if (!line.empty())
 			processMessage(fd, line);
+
+		if (_clients.find(fd) == _clients.end())
+			return;
 	}
 
 	if (client->_buffer.size() > 512)
