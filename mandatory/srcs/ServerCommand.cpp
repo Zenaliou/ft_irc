@@ -286,12 +286,18 @@ bool Server::isValidChanName(int fd, const std::string &name)
 		return (false);
 	}
 
+	if (name.size() < 2 || name.size() > 50)
+	{
+		sendError(fd, ERR_NOSUCHCHANNEL, name + " :No such channel");
+		return (false);
+	}
+
 	for (size_t i = 1; i < name.length(); ++i)
 	{
 		char c = name[i];
 		if (!isValidChanChar(c))
 		{
-			sendError(fd, ERR_BADCHANMASK, name + " :Bad Channel Mask");
+			sendError(fd, ERR_NOSUCHCHANNEL, name + " :No such channel");
 			return (false);
 		}
 	}
