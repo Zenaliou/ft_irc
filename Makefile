@@ -28,28 +28,28 @@ CYAN    = \033[1;36m
 NC      = \033[0m
 
 all: $(NAME)
-	@echo "$(CYAN)🚀 Partie mandatoire prête !$(NC)"
+	@echo -e "$(CYAN)🚀 Partie mandatoire prête !$(NC)"
 
 bonus: $(NAME) $(BONUS_NAME)
-	@echo "$(CYAN)🌟 Bonus compilé avec succès !$(NC)"
+	@echo -e "$(CYAN)🌟 Bonus compilé avec succès !$(NC)"
 
 $(NAME): $(MAND_OBJ_DIR) $(MAND_OBJS)
-	@echo "$(YELLOW)⏳ Compilation de $(NAME)...$(NC)"
+	@echo -e "$(YELLOW)⏳ Compilation de $(NAME)...$(NC)"
 	@$(CC) $(CFLAGS) $(MAND_OBJS) -o $(NAME)
-	@echo "$(GREEN)✓ Compilation de $(NAME) réussie!$(NC)"
+	@echo -e "$(GREEN)✓ Compilation de $(NAME) réussie!$(NC)"
 
 $(BONUS_NAME): $(BONUS_OBJ_DIR) $(BONUS_OBJS)
-	@echo "$(YELLOW)⏳ Compilation de $(BONUS_NAME)...$(NC)"
+	@echo -e "$(YELLOW)⏳ Compilation de $(BONUS_NAME)...$(NC)"
 	@$(CC) $(CFLAGS) $(BONUS_OBJS) -o $(BONUS_NAME)
-	@echo "$(GREEN)✓ Compilation de $(BONUS_NAME) réussie!$(NC)"
+	@echo -e "$(GREEN)✓ Compilation de $(BONUS_NAME) réussie!$(NC)"
 
 $(MAND_OBJ_DIR):
 	@mkdir -p $(MAND_OBJ_DIR)
-	@echo "$(BLUE)📁 Dossier mandatory/obj créé.$(NC)"
+	@echo -e "$(BLUE)📁 Dossier mandatory/obj créé.$(NC)"
 
 $(BONUS_OBJ_DIR):
 	@mkdir -p $(BONUS_OBJ_DIR)
-	@echo "$(BLUE)📁 Dossier bonus/obj créé.$(NC)"
+	@echo -e "$(BLUE)📁 Dossier bonus/obj créé.$(NC)"
 
 $(MAND_OBJ_DIR)%.o: $(MAND_SRC_DIR)%.cpp
 	@mkdir -p $(dir $@)
@@ -64,13 +64,13 @@ $(BONUS_OBJ_DIR)%.o: $(BONUS_SRC_DIR)%.cpp
 
 clean:
 	@rm -rf $(MAND_OBJ_DIR) $(BONUS_OBJ_DIR)
-	@echo "$(RED)🧹 Fichiers objets supprimés.$(NC)"
+	@echo -e "$(RED)🧹 Fichiers objets supprimés.$(NC)"
 
 fclean: clean
 	@rm -f $(NAME) $(BONUS_NAME)
-	@echo "$(RED)🗑️ Exécutables supprimés.$(NC)"
+	@echo -e "$(RED)🗑️ Exécutables supprimés.$(NC)"
 
 re: fclean all
-	@echo "$(CYAN)🔁 Recompilation terminée.$(NC)"
+	@echo -e "$(CYAN)🔁 Recompilation terminée.$(NC)"
 
 .PHONY: all bonus clean fclean re
