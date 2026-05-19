@@ -74,6 +74,9 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
 
+	if (!client->isPassOk())
+		return ;
+
 	if (args.size() < 2)
 	{
 		sendError(fd, ERR_NONICKNAMEGIVEN, ":No nickname given");
@@ -123,6 +126,9 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 void Server::handleUser(int fd, const std::vector<std::string> &args)
 {
 	Client	*client = _clients[fd];
+
+	if (!client->isPassOk())
+		return ;
 
 	if (client->isRegistered())
 	{

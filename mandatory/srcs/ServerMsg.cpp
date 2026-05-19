@@ -16,6 +16,7 @@ void Server::sendError(int fd, const std::string &code, const std::string &msg)
 		nickname = it->second->getNickname();
 	
 	std::string errmsg = ":ircserv " + code + " " + nickname + " " + msg + "\r\n";
+	std::cout << "Sent to " << fd << ": " << errmsg << std::flush;
 	send(fd, errmsg.c_str(), errmsg.size(), 0);
 }
 
