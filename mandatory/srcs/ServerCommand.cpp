@@ -11,7 +11,7 @@ void Server::handlePass(int fd, const std::vector<std::string> &args)
 
 	if (client->isRegistered())
 	{
-		sendError(fd, ERR_ALREADYREGISTERED, "Already registered");
+		sendError(fd, ERR_ALREADYREGISTERED, ":Already registered");
 		return ;
 	}
 
@@ -24,7 +24,7 @@ void Server::handlePass(int fd, const std::vector<std::string> &args)
 	std::string password = args[1];
 	if (password != _password)
 	{
-		sendError(fd, ERR_PASSWDMISMATCH, "Password incorrect");
+		sendError(fd, ERR_PASSWDMISMATCH, ":Password incorrect");
 		return ;
 	}
 
@@ -76,7 +76,7 @@ void Server::handleNick(int fd, const std::vector<std::string> &args)
 
 	if (args.size() < 2)
 	{
-		sendError(fd, ERR_NONICKNAMEGIVEN, "No nickname given");
+		sendError(fd, ERR_NONICKNAMEGIVEN, ":No nickname given");
 		return ;
 	}
 
@@ -126,7 +126,7 @@ void Server::handleUser(int fd, const std::vector<std::string> &args)
 
 	if (client->isRegistered())
 	{
-		sendError(fd, ERR_ALREADYREGISTERED, "Already registered");
+		sendError(fd, ERR_ALREADYREGISTERED, ":Already registered");
 		return ;
 	}
 
