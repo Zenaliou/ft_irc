@@ -8,19 +8,18 @@
 	class	Channel
 	{
 		private:
-			std::string _name; // nom du channel
+			std::string _name;
 			std::string _topic;
 			std::string _password;
 			int	_user_limit;
-			std::set<int> _clients_fd; // liste des membres
+			std::set<int> _clients_fd;
 			std::set<int> _inviteList;
 			std::set<int> _operators;
 
-			bool _inviteOnly; // MODE i
-			bool _topicRestricted; // MODE t
-			// bool _operatorPri; //MODE o
-			bool _hasUserLimit; // MODE l
-			bool _hasPass; // MODE k
+			bool _inviteOnly;
+			bool _topicRestricted;
+			bool _hasUserLimit;
+			bool _hasPass;
 
 		public:
 			Channel(const std::string &name);

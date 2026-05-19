@@ -21,9 +21,9 @@
 	{
 		private:
 			int	_fd;
-			std::string	_nickname; // nom public utilise
-			std::string	_username; // user command
-			std::string _realname; // utilse pour WHO/WHOIS
+			std::string	_nickname;
+			std::string	_username;
+			std::string _realname;
 			std::set<std::string> _channels;
 
 			bool _passOk;

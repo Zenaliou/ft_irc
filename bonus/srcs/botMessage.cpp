@@ -1,35 +1,15 @@
 #include "../inc/bot.hpp"
 
-// Extrait le nickname d'un préfixe IRC
-// Format IRC: nickname!user@host
-// Retourne uniquement la partie "nickname"
-// Exemple: "Alice!ALice@localhost" -> retourne "Alice"
-//          "Bob!bobby@192.168.1.1" -> retourne "Bob"
-//          "Charlie" (pas de '!') -> retourne "Charlie"
 std::string Bot::getNickFromPrefix(const std::string &prefix)
 {
-	// Cherche le caractère '!' qui sépare le nickname du reste
 	size_t pos = prefix.find('!');
 	if (pos != std::string::npos)
-		return prefix.substr(0, pos); // Retourne la partie avant le '!'
-	return prefix; // Si pas de '!', retourne le préfixe entier
+		return prefix.substr(0, pos);
+	return prefix;
 }
 
-// Parse un message IRC complet en ses composants
-// Format IRC: [:prefix] COMMAND [params] [:trailing]
-// 
-// Exemples:
-//   Input:  ":Alice!ALice@localhost PRIVMSG #general :Hello world"
-//   Output: prefix="Alice!ALice@localhost", command="PRIVMSG", params=["#general", "Hello world"]
-//
-//   Input:  "PING :server.local"
-//   Output: prefix="", command="PING", params=["server.local"]
-//
-//   Input:  ":Bob!bob@host JOIN #general"
-//   Output: prefix="Bob!bob@host", command="JOIN", params=["#general"]
 void Bot::parseMessage(const std::string &line, std::string &prefix, std::string &command, std::vector<std::string> &params)
 {
-	// Réinitialise tous les paramètres de sortie
 	params.clear();
 	prefix.clear();
 	command.clear();
@@ -81,20 +61,6 @@ void Bot::parseMessage(const std::string &line, std::string &prefix, std::string
 	}
 }
 
-// Gère les messages privés (PRIVMSG) reçus
-// Détecte et exécute les commandes du bot (commençant par '!')
-// 
-// Exemples:
-//   sender="Alice!ALice@localhost", target="#general", message="!poll Question? Yes No"
-//   -> Affiche: "[#general] <Alice> !poll Question? Yes No"
-//   -> Appelle: handleCommand("Alice", "#general", "poll", "Question? Yes No")
-//
-//   sender="Bob!bob@host", target="PollBot", message="!help"
-//   -> Affiche: "[PollBot] <Bob> !help"
-//   -> Appelle: handleCommand("Bob", "Bob", "help", "") (répond en privé)
-//
-//   sender="Tom!tom@host", target="#general", message="Hello everyone!"
-//   -> Affiche: "[#general] <Tom> Hello everyone!" (pas de commande, juste affichage)
 void Bot::handlePrivmsg(const std::string &sender, const std::string &target, const std::string &message)
 {
 	std::string nick = getNickFromPrefix(sender);
@@ -111,18 +77,6 @@ void Bot::handlePrivmsg(const std::string &sender, const std::string &target, co
 	}
 }
 
-// Point d'entrée principal pour traiter tous les messages reçus du serveur IRC
-// Détermine le type de message et appelle le gestionnaire approprié
-// 
-// Exemples:
-//   Input: "PING :server.local"
-//   -> Répond avec: "PONG :server.local\r\n"
-//
-//   Input: ":Alice!ALice@localhost PRIVMSG #general :!poll test? A B C"
-//   -> Appelle: handlePrivmsg("Alice!ALice@localhost", "#general", "!poll test? A B C")
-//
-//   Input: ":server.local 001 PollBot :Welcome to the IRC Network"
-//   -> Affiche: "Successfully registered with the server!"
 void Bot::handleMessage(const std::string &line)
 {
 	std::string prefix, command;
@@ -149,13 +103,6 @@ void Bot::handleMessage(const std::string &line)
 	}
 }
 
-// Envoie un message brut au serveur IRC sans modification
-// Utilisé pour envoyer des commandes IRC directement
-// 
-// Exemples:
-//   sendRaw("PONG :server.local\r\n") -> Répond à un PING
-//   sendRaw("JOIN #general\r\n") -> Rejoint le channel #general
-//   sendRaw("NICK NewBotName\r\n") -> Change le nickname du bot
 void Bot::sendRaw(const std::string &msg)
 {
 	if (_sockfd < 0)
@@ -164,15 +111,6 @@ void Bot::sendRaw(const std::string &msg)
 	std::cout << ">>> " << msg;
 }
 
-// Envoie un message privé à un utilisateur ou dans un channel
-// Construit et envoie une commande PRIVMSG formatée selon le protocole IRC
-// 
-// Exemples:
-//   sendPrivmsg("#general", "New poll created!") -> Envoie au channel
-//   -> Génère: "PRIVMSG #general :New poll created!\r\n"
-//
-//   sendPrivmsg("Alice", "You already voted!") -> Envoie en privé
-//   -> Génère: "PRIVMSG Alice :You already voted!\r\n"
 void Bot::sendPrivmsg(const std::string &target, const std::string &msg)
 {
 	sendRaw("PRIVMSG " + target + " :" + msg + "\r\n");
